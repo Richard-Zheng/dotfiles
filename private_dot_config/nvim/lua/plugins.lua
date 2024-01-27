@@ -1,53 +1,25 @@
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
-end
-vim.opt.rtp:prepend(lazypath)
-
-local plugin_specs = {
+return {
   {
-    "hrsh7th/nvim-cmp",
-    -- event = 'InsertEnter',
-    event = "VeryLazy",
-    dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
-      "onsails/lspkind-nvim",
-      "hrsh7th/cmp-path",
-      "hrsh7th/cmp-buffer",
-      "hrsh7th/cmp-omni",
-      "hrsh7th/cmp-emoji",
-      "quangnguyen30192/cmp-nvim-ultisnips",
-    },
+    "catppuccin/nvim",
+    lazy = false, -- make sure we load this during startup
+    name = "catppuccin",
+    priority = 1000, -- make sure to load this before all the other start plugins
     config = function()
-      require("config.nvim-cmp")
+      -- load the colorscheme here
+      vim.cmd([[colorscheme catppuccin]])
     end,
   },
-  -- Snippet engine and snippet template
-  { "SirVer/ultisnips", dependencies = {
-    "honza/vim-snippets",
-  }, event = "InsertEnter" },
-
-  -- showing keybindings
   {
-    "folke/which-key.nvim",
-    event = "VeryLazy",
+    'nvim-telescope/telescope.nvim',
+    tag = '0.1.5',
+    dependencies = { 'nvim-lua/plenary.nvim' },
     config = function()
-      vim.o.timeout = true
-      vim.o.timeoutlen = 300
-      require("which-key").setup {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
-      }
-    end,
-  },
+      local builtin = require('telescope.builtin')
+      vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
+      vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
+      vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
+      vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+    end
+  }
 }
 
-require("lazy").setup(plugin_specs)
