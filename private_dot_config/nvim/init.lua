@@ -15,7 +15,7 @@ local nsopt = { noremap = true, silent = true }
 -- Use comma as leader key
 vim.g.mapleader = ','
 -- <leader>, as original comma
-map('n', '<leader>,', ',', nsopt)
+map('n', '<leader>,', ',', { desc = "original ,", noremap = true, silent = true })
 -- Use <Esc> to go from terminal mode to normal mode
 map('t', '<Esc>', [[<C-\><C-n>]], nsopt)
 -- Ctrl+HJKL as window selection
@@ -39,7 +39,7 @@ map("t", "<C-Right>", "<cmd>vertical resize +2<CR>", nsopt)
 -- Buffers
 map("n", "<TAB>", ":bn<CR>", nsopt)
 map("n", "<S-TAB>", ":bp<CR>", nsopt)
-map("n", "<leader>bd", ":bd<CR>", nsopt)
+map("n", "<leader>bd", ":bd<CR>", { desc = "Unload current buffer", noremap = true, silent = true })
 -- Indenting
 map("v", "<", "<gv", nsopt)
 map("v", ">", ">gv", nsopt)
