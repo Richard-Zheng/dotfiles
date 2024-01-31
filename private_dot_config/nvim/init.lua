@@ -9,15 +9,17 @@ vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
 vim.bo.softtabstop = 2
 
--- Key mappings
-local map = vim.keymap.set
-local nsopt = { noremap = true, silent = true }
 -- Use comma as leader key
 vim.g.mapleader = ','
 -- <leader>, as original comma
-map('n', '<leader>,', ',', { desc = "original ,", noremap = true, silent = true })
--- Use <Esc> to go from terminal mode to normal mode
+vim.keymap.set('n', '<leader>,', ',', { desc = "original ,", noremap = true, silent = true })
+-- Key mappings
+local map = vim.keymap.set
+local nsopt = { noremap = true, silent = true }
+-- Use <Esc>/jk/kj to go from terminal mode to normal mode
 map('t', '<Esc>', [[<C-\><C-n>]], nsopt)
+map('t', 'jk', [[<C-\><C-n>]], nsopt)
+map('t', 'kj', [[<C-\><C-n>]], nsopt)
 -- Ctrl+HJKL as window selection
 map("n", "<C-h>", "<C-w>h", nsopt)
 map("n", "<C-j>", "<C-w>j", nsopt)
@@ -27,6 +29,21 @@ map("t", "<C-h>", "<cmd>wincmd h<CR>", nsopt)
 map("t", "<C-j>", "<cmd>wincmd j<CR>", nsopt)
 map("t", "<C-k>", "<cmd>wincmd k<CR>", nsopt)
 map("t", "<C-l>", "<cmd>wincmd l<CR>", nsopt)
+-- Netrw
+vim.api.nvim_create_autocmd('filetype', {
+  pattern = 'netrw',
+  desc = 'Better mappings for netrw',
+  callback = function()
+    local bind = function(lhs, rhs)
+      vim.keymap.set('n', lhs, rhs, { remap = true, buffer = true })
+    end
+    -- edit new file
+    bind('n', '%')
+    -- rename file
+    bind('r', 'R')
+    bind("<C-l>", "<C-w>l")
+  end
+})
 -- Window resize
 map("n", "<C-Up>", ":resize -2<CR>", nsopt)
 map("n", "<C-Down>", ":resize +2<CR>", nsopt)
@@ -37,12 +54,14 @@ map("t", "<C-Down>", "<cmd>resize +2<CR>", nsopt)
 map("t", "<C-Left>", "<cmd>vertical resize -2<CR>", nsopt)
 map("t", "<C-Right>", "<cmd>vertical resize +2<CR>", nsopt)
 -- Buffers
-map("n", "<TAB>", ":bn<CR>", nsopt)
-map("n", "<S-TAB>", ":bp<CR>", nsopt)
+map("n", "<TAB>", ":bp<CR>", nsopt)
+map("n", "<S-TAB>", ":bn<CR>", nsopt)
 map("n", "<leader>bd", ":bd<CR>", { desc = "Unload current buffer", noremap = true, silent = true })
 -- Indenting
 map("v", "<", "<gv", nsopt)
 map("v", ">", ">gv", nsopt)
+-- Quickly open directory of current file
+map('n', '<leader>e', vim.cmd.Ex, { desc = ":Explore", noremap = true, silent = true })
 
 -- Install lazy.nvim first
 -- paru -S nvim-lazy
