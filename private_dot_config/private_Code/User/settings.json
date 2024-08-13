@@ -1,0 +1,186 @@
+{
+    "workbench.colorTheme": "Default Light Modern",
+    "window.restoreWindows": "none",
+    "explorer.confirmDelete": false,
+    "window.openFoldersInNewWindow": "on",
+    "code-runner.runInTerminal": true,
+    "workbench.editor.enablePreview": false,
+    "security.workspace.trust.untrustedFiles": "open",
+    "editor.codeActionsOnSave": {},
+    "vim.leader": ",",
+    "vim.digraphs": {},
+    "vim.normalModeKeyBindings": [
+        {
+            "before": [
+                "<leader>",
+                "<C-r>"
+            ],
+            "commands": [
+                "workbench.action.openRecent",
+            ],
+        },
+        {
+            "before": [
+                "<leader>",
+                "<C-w>"
+            ],
+            "commands": [
+                "workbench.action.closeActiveEditor",
+            ],
+        },
+        {
+            "before": [
+                "<leader>",
+                "<C-b>"
+            ],
+            "commands": [
+                "workbench.action.toggleSidebarVisibility",
+            ],
+        },
+        {
+            "before": [
+                "<leader>",
+                "<C-'>"
+            ],
+            "commands": [
+                "workbench.action.toggleAuxiliaryBar",
+            ],
+        },
+        {
+            "before": [
+                "<leader>",
+                "<C-f>"
+            ],
+            "commands": [
+                "actions.find",
+            ],
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "f"
+            ],
+            "commands": [
+                "editor.action.formatDocument",
+            ],
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "i"
+            ],
+            "commands": [
+                "python.sortImports",
+            ],
+        },
+                {
+            "before": [
+                "<leader>",
+                "<C-a>"
+            ],
+            "commands": [
+                "editor.action.selectAll"
+            ]
+        },
+        {
+            "before": [
+                "<leader>",
+                "<C-c>"
+            ],
+            "commands": [
+                "editor.action.clipboardCopyAction"
+            ]
+        },
+        // insert mode focus on terminal
+        {
+            "before": [
+                "<C-j>"
+            ],
+            "commands": [
+                "workbench.action.terminal.focus"
+            ]
+        }
+    ],
+    "vim.insertModeKeyBindings": [],
+    "vim.insertModeKeyBindingsNonRecursive": [
+        {
+            "before": [
+                "j",
+                "k"
+            ],
+            "after": [
+                "<ESC>"
+            ]
+        },
+        {
+            "before": [
+                "k",
+                "j"
+            ],
+            "after": [
+                "<ESC>"
+            ]
+        },
+        // insert mode focus on terminal
+        {
+            "before": [
+                "<C-j>"
+            ],
+            "commands": [
+                "workbench.action.terminal.focus"
+            ]
+        }
+    ],
+    "vim.normalModeKeyBindingsNonRecursive": [
+
+        {
+            "before": [
+                "J"
+            ],
+            "after": [
+                "5",
+                "j"
+            ]
+        },
+        {
+            "before": [
+                "K"
+            ],
+            "after": [
+                "5",
+                "k"
+            ]
+        },
+        {
+            "before": [
+                "<Leader>",
+                "j"
+            ],
+            "after": [
+                "J"
+            ]
+        },
+                {
+            "before": [
+                "<Leader>",
+                "t",
+                "n"
+            ],
+            "commands": [
+                ":tabnext"
+            ]
+        },
+        {
+            "before": [
+                "<Leader>",
+                "t",
+                "p"
+            ],
+            "commands": [
+                ":tabprev"
+            ]
+        },
+    ],
+}
