@@ -1,12 +1,12 @@
 {
-    "workbench.colorTheme": "Default Light Modern",
     "window.restoreWindows": "none",
     "explorer.confirmDelete": false,
     "window.openFoldersInNewWindow": "on",
     "code-runner.runInTerminal": true,
-    "workbench.editor.enablePreview": false,
+    "workbench.editor.enablePreview": true,
     "security.workspace.trust.untrustedFiles": "open",
     "editor.codeActionsOnSave": {},
+    "vim.useSystemClipboard": true,
     "vim.leader": ",",
     "vim.digraphs": {},
     "vim.normalModeKeyBindings": [
@@ -183,4 +183,9 @@
             ]
         },
     ],
+    "workbench.colorTheme": "Visual Studio Light - C++",
+    "editor.cursorBlinking": "solid",
+    "editor.fontFamily": "'Iosevka Fixed Medium', 'monospace', monospace",
+    "makefile.configureOnOpen": true,
+    "editor.fontSize": 16,
 }

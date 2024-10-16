@@ -1,5 +1,21 @@
 return {
   {
+    -- pacman -S git unzip
+    "williamboman/mason.nvim",
+    lazy = false,
+    config = function()
+      require("mason").setup()
+    end,
+  },
+  {
+    "williamboman/mason-lspconfig.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    lazy = false,
+    opts = {
+      automatic_installation = true,
+    },
+  },
+  {
     "hrsh7th/nvim-cmp",
     dependencies = {
       { "L3MON4D3/LuaSnip", lazy = true },
@@ -38,6 +54,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     dependencies = {
+      { "williamboman/mason-lspconfig.nvim" },
       { "folke/neodev.nvim", lazy = true },
       { 'hrsh7th/cmp-nvim-lsp', lazy = true },
     },
@@ -50,12 +67,27 @@ return {
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
       local lspconfig = require("lspconfig")
-      -- pacman -S lua-language-server
-      lspconfig.lua_ls.setup({ capabilities = capabilities })
+      lspconfig.lua_ls.setup({
+        capabilities = capabilities,
+        settings = {
+          Lua = {
+            diagnostics = { disable = { 'missing-fields' } },
+          }
+        }
+      })
+      lspconfig.tsserver.setup({
+        filetypes = {
+          "javascript",
+          "typescript",
+          "vue",
+        },
+      })
       lspconfig.denols.setup({
         capabilities = capabilities,
-        single_file_support = true
+        single_file_support = false
       })
+      lspconfig.gopls.setup({})
+      lspconfig.clangd.setup({})
 
       -- Use LspAttach autocommand to only map the following keys
       -- after the language server attaches to the current buffer

@@ -13,11 +13,17 @@ return {
     "max397574/better-escape.nvim",
     lazy = false,
     opts = {
-      mapping = {"jk", "kj", "jj"},
       timeout = 100, -- the time in which the keys must be hit in ms. Use option timeoutlen by default
-      keys = function()
-        return vim.api.nvim_win_get_cursor(0)[2] > 1 and '<esc>l' or '<esc>'
-      end,
+      mappings = {
+        i = {
+            j = {
+                k = "<Esc>",
+            },
+            k = {
+                j = "<Esc>",
+            },
+        },
+      }
     }
   },
   {
