@@ -23,5 +23,7 @@ paru -S nvim-lazy
 
 ```
 sudo pacman -S i3-wm rofi alacritty arandr keyd
+
+sudo cp ~/.config/keyd/* /etc/keyd
 ```
 
