@@ -15,8 +15,7 @@ sudo pacman -S zsh zsh-completions zsh-syntax-highlighting zsh-autosuggestions z
 ## Neovim
 
 ```
-sudo pacman -S --needed neovim python-neovim xclip unzip
-paru -S nvim-lazy
+sudo pacman -S --needed neovim python-neovim xclip unzip base-devel
 ```
 
 ## i3
