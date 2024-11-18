@@ -1,4 +1,3 @@
-[main]
 capslock = layer(control)
 tab = overload(alt, tab)
 j+k = escape
