@@ -86,7 +86,6 @@ return {
         capabilities = capabilities,
         single_file_support = false
       })
-      lspconfig.gopls.setup({})
       lspconfig.clangd.setup({})
 
       -- Use LspAttach autocommand to only map the following keys

@@ -28,14 +28,33 @@ return {
   },
   {
     'nvim-telescope/telescope.nvim',
-    tag = '0.1.5',
+    branch = '0.1.x',
     dependencies = { 'nvim-lua/plenary.nvim' },
-    config = function()
-      local builtin = require('telescope.builtin')
-      vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = "Find files" })
-      vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = "Live grep" })
-      vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = "Buffers" })
-      vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = "Help tags" })
+    opts = {
+        defaults = {
+        file_ignore_patterns = {
+          "node_modules",
+          "go",
+        }
+      }
+    },
+    keys = {
+      { '<C-p>', "<cmd>Telescope find_files<cr>", desc = "Find files" },
+      { '<leader>ff', "<cmd>Telescope find_files<cr>", desc = "Find files" },
+      { '<leader>fg', "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
+      { '<leader>fb', "<cmd>Telescope buffers<cr>", desc = "Buffers" },
+      { '<leader>fh', "<cmd>Telescope help_tags<cr>", desc = "Help tags" },
+      {
+        '<leader>fp',
+        function ()
+          require'telescope'.extensions.projects.projects{}
+        end,
+        desc = "Recent projects"
+      },
+    },
+    config = function (_, opts)
+      require('telescope').setup(opts)
+      require('telescope').load_extension('projects')
     end
   },
   {
@@ -69,6 +88,14 @@ return {
     opts = {
       theme = 'dracula'
     }
+  },
+  {
+    'ahmedkhalf/project.nvim',
+    config = function()
+      require("project_nvim").setup {
+        patterns = { ".git", "Makefile", "package.json", "init.lua" },
+      }
+    end
   }
 }
 
