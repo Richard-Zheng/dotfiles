@@ -9,13 +9,13 @@ sudo pacman -S noto-fonts-cjk ttf-fira-code ttf-fira-sans ttf-nerd-fonts-symbols
 ## zsh
 
 ```
-sudo pacman -S zsh zsh-completions zsh-syntax-highlighting zsh-autosuggestions zsh-theme-powerlevel10k
+sudo pacman -S zsh zsh-completions fzf
 ```
 
 ## Neovim
 
 ```
-sudo pacman -S --needed neovim python-neovim xclip unzip base-devel
+sudo pacman -S --needed neovim python-neovim xclip unzip base-devel ripgrep fd
 ```
 
 ## i3

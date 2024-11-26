@@ -1,4 +1,6 @@
+# smart zdotdir
 _zdir=${ZDOTDIR:-$HOME}
+# cache folder for zcompdump
 ZSH_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/"
 if [[ ! -d $ZSH_CACHE ]]; then
   mkdir -p $ZSH_CACHE 
@@ -81,5 +83,5 @@ setopt noflowcontrol; stty -ixon
 # Change Xft.dpi instantly
 # Usage: dpi <number>
 function dpi() {
-    sed -i -E s/^Xft.dpi:.\*/Xft.dpi:$1/ ~/.Xresources && xrdb ~/.Xresources && i3-msg restart
+    sed -i -E s/Xft.dpi:.\*/Xft.dpi:$1/ ~/.Xresources && xrdb ~/.Xresources && i3-msg restart
 }
