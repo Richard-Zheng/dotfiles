@@ -12,19 +12,35 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
-# zinit plugins
+# Prompt
 zinit ice depth=1; zinit light romkatv/powerlevel10k
-zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-autosuggestions
-zinit light none9632/zsh-sudo
+[[ ! -f $_zdir/.p10k.zsh ]] || source $_zdir/.p10k.zsh
+
+zinit wait lucid light-mode for \
+  atinit"ZINIT[COMPINIT_OPTS]='-d $ZSH_CACHE/.zcompdump-${ZSH_VERSION}'; zicompinit; zicdreplay;" \
+    Aloxaf/fzf-tab \
+  zdharma-continuum/fast-syntax-highlighting \
+  atload"_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions \
+  blockf atpull'zinit creinstall -q .' \
+    zsh-users/zsh-completions \
+  bindmap"^R -> ^H" atinit"
+    zstyle :history-search-multi-word page-size 10
+    zstyle :history-search-multi-word highlight-color fg=red,bold
+    zstyle :plugin:history-search-multi-word reset-prompt-protect 1
+  " \
+    zdharma/history-search-multi-word \
+  none9632/zsh-sudo \
+  djui/alias-tips
+
 zinit snippet PZT::modules/pacman/init.zsh
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
 
 # For ICS PA
 export NEMU_HOME=/home/frain/ics2024/nemu
@@ -43,19 +59,6 @@ setopt hist_verify            # show command with history expansion to user befo
 setopt share_history          # share history between shells
 # use OS fcntl file lock
 setopt hist_fcntl_lock 2>/dev/null
-
-# The following lines were added by compinstall
-zstyle :compinstall filename "$_zdir/.zshrc"
-if [[ -z $SUDO_UID ]]; then
-  fpath=($_zdir/.zsh/Completion $_zdir/.zsh/functions $fpath)
-fi
-autoload -Uz compinit
-ZSH_COMPDUMP="$ZSH_CACHE/.zcompdump-${ZSH_VERSION}"
-compinit -d $ZSH_COMPDUMP
-# End of lines added by compinstall
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f $_zdir/.p10k.zsh ]] || source $_zdir/.p10k.zsh
 
 unsetopt beep
 bindkey -e
