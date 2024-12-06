@@ -31,7 +31,17 @@ zinit wait lucid light-mode for \
   " \
     zdharma/history-search-multi-word \
   none9632/zsh-sudo \
-  djui/alias-tips
+  djui/alias-tips \
+  OMZL::clipboard.zsh \
+  atload"autoload -U colors && colors" \
+    OMZP::colored-man-pages
+
+ZSH_TMUX_AUTOSTART=true
+zinit lucid light-mode for \
+  atclone"echo 'set -g default-terminal \$ZSH_TMUX_TERM
+source-file \$ZSH_TMUX_CONFIG' > ./tmux.extra.conf
+echo 'set -g default-terminal \$ZSH_TMUX_TERM' > ./tmux.only.conf" \
+    OMZP::tmux
 
 zinit snippet PZT::modules/pacman/init.zsh
 
@@ -43,8 +53,8 @@ zinit snippet PZT::modules/pacman/init.zsh
 # fi
 
 # For ICS PA
-export NEMU_HOME=/home/frain/ics2024/nemu
-export AM_HOME=/home/frain/ics2024/abstract-machine
+export NEMU_HOME=$HOME/ics2024/nemu
+export AM_HOME=$HOME/ics2024/abstract-machine
 
 # History file
 HISTFILE=~/.zsh_history
