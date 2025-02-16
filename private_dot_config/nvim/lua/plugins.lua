@@ -2,15 +2,15 @@ return {
   {
     "catppuccin/nvim",
     enable = false,
-    lazy = false, -- make sure we load this during startup
+    lazy = false,    -- make sure we load this during startup
     name = "catppuccin",
     priority = 1000, -- make sure to load this before all the other start plugins
     config = function()
       -- load the colorscheme here
       vim.cmd([[colorscheme catppuccin]])
-      vim.api.nvim_set_hl(0, 'LineNrAbove', { fg='gray', bold=false })
-      vim.api.nvim_set_hl(0, 'LineNr', { fg='#ffe5b4', bold=true })
-      vim.api.nvim_set_hl(0, 'LineNrBelow', { fg='gray', bold=false })
+      vim.api.nvim_set_hl(0, 'LineNrAbove', { fg = 'gray', bold = false })
+      vim.api.nvim_set_hl(0, 'LineNr', { fg = '#ffe5b4', bold = true })
+      vim.api.nvim_set_hl(0, 'LineNrBelow', { fg = 'gray', bold = false })
     end,
   },
   {
@@ -20,12 +20,12 @@ return {
       timeout = 100, -- the time in which the keys must be hit in ms. Use option timeoutlen by default
       mappings = {
         i = {
-            j = {
-                k = "<Esc>",
-            },
-            k = {
-                j = "<Esc>",
-            },
+          j = {
+            k = "<Esc>",
+          },
+          k = {
+            j = "<Esc>",
+          },
         },
       }
     }
@@ -35,7 +35,7 @@ return {
     branch = '0.1.x',
     dependencies = { 'nvim-lua/plenary.nvim' },
     opts = {
-        defaults = {
+      defaults = {
         file_ignore_patterns = {
           "node_modules",
           "go",
@@ -44,20 +44,20 @@ return {
       }
     },
     keys = {
-      { '<C-p>', "<cmd>Telescope find_files<cr>", desc = "Find files" },
+      { '<C-p>',      "<cmd>Telescope find_files<cr>", desc = "Find files" },
       { '<leader>ff', "<cmd>Telescope find_files<cr>", desc = "Find files" },
-      { '<leader>fg', "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
-      { '<leader>fb', "<cmd>Telescope buffers<cr>", desc = "Buffers" },
-      { '<leader>fh', "<cmd>Telescope help_tags<cr>", desc = "Help tags" },
+      { '<leader>fg', "<cmd>Telescope live_grep<cr>",  desc = "Live grep" },
+      { '<leader>fb', "<cmd>Telescope buffers<cr>",    desc = "Buffers" },
+      { '<leader>fh', "<cmd>Telescope help_tags<cr>",  desc = "Help tags" },
       {
         '<leader>fp',
-        function ()
-          require'telescope'.extensions.projects.projects{}
+        function()
+          require 'telescope'.extensions.projects.projects {}
         end,
         desc = "Recent projects"
       },
     },
-    config = function (_, opts)
+    config = function(_, opts)
       require('telescope').setup(opts)
       require('telescope').load_extension('projects')
     end
@@ -65,7 +65,7 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    config = function ()
+    config = function()
       local configs = require("nvim-treesitter.configs")
 
       configs.setup({
@@ -121,5 +121,21 @@ return {
     opts = {
     },
   },
+  {
+    'xvzc/chezmoi.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      require("chezmoi").setup {
+        edit = {
+          watch = true,
+          force = false,
+        }
+      }
+      local telescope = require("telescope")
+      telescope.load_extension('chezmoi')
+      vim.keymap.set('n', '<leader>cz', telescope.extensions.chezmoi.find_files, {
+        desc = "Find chezmoi dotfiles"
+      })
+    end
+  },
 }
-
