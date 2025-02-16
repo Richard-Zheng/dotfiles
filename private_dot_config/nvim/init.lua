@@ -19,6 +19,7 @@ vim.opt.rtp:prepend(lazypath)
 vim.o.shada = "'1000,f1,<500,:100"
 -- Line number
 vim.opt.number = true
+vim.opt.relativenumber = true
 -- vim.opt.relativenumber = true
 -- <Tab> = 2 spaces
 vim.opt.tabstop = 2
@@ -78,8 +79,6 @@ map("n", "<leader>bd", ":bd<CR>", { desc = "Unload current buffer", noremap = tr
 -- Indenting
 map("v", "<", "<gv", nsopt)
 map("v", ">", ">gv", nsopt)
--- Quickly open directory of current file
-map('n', '<leader>e', vim.cmd.Ex, { desc = ":Explore", noremap = true, silent = true })
 
 -- Install lazy.nvim first
 -- paru -S nvim-lazy

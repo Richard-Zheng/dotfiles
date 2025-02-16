@@ -87,6 +87,8 @@ return {
         single_file_support = false
       })
       lspconfig.clangd.setup({})
+      lspconfig.pyright.setup({})
+      lspconfig.gopls.setup({})
 
       -- Use LspAttach autocommand to only map the following keys
       -- after the language server attaches to the current buffer
@@ -105,6 +107,7 @@ return {
           vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
           vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
           vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, opts)
+          vim.keymap.set({ 'n', 'v' }, '<leader>cf', vim.lsp.buf.format, opts)
         end,
       })
     end,
