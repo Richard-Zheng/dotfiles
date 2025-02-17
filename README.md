@@ -21,7 +21,8 @@ sudo pacman -S --needed neovim python-neovim xclip unzip base-devel ripgrep fd
 ## i3
 
 ```
-sudo pacman -S i3-wm rofi alacritty arandr keyd dunst
+sudo pacman -S i3-wm rofi alacritty arandr keyd dunst acpi
+paru -S i3blocks-git
 
 sudo cp ~/.config/keyd/* /etc/keyd
 ```

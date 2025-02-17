@@ -34,7 +34,8 @@ zinit wait lucid light-mode for \
   djui/alias-tips \
   OMZL::clipboard.zsh \
   atload"autoload -U colors && colors" \
-    OMZP::colored-man-pages
+    OMZP::colored-man-pages \
+  atuinsh/atuin
 
 ZSH_TMUX_AUTOSTART=true
 zinit lucid light-mode for \
