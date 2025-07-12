@@ -37,7 +37,7 @@ zinit wait lucid light-mode for \
     OMZP::colored-man-pages \
   atuinsh/atuin
 
-ZSH_TMUX_AUTOSTART=true
+ZSH_TMUX_AUTOSTART=false
 zinit lucid light-mode for \
   atclone"echo 'set -g default-terminal \$ZSH_TMUX_TERM
 source-file \$ZSH_TMUX_CONFIG' > ./tmux.extra.conf
