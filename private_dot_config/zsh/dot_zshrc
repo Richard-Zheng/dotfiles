@@ -56,6 +56,7 @@ zinit snippet PZT::modules/pacman/init.zsh
 # For ICS PA
 export NEMU_HOME=$HOME/ics2024/nemu
 export AM_HOME=$HOME/ics2024/abstract-machine
+export NAVY_HOME=$HOME/ics2024/navy-apps
 
 # History file
 HISTFILE=~/.zsh_history

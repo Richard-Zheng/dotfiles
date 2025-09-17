@@ -5,9 +5,8 @@
     "code-runner.runInTerminal": true,
     "workbench.editor.enablePreview": true,
     "security.workspace.trust.untrustedFiles": "open",
-    "editor.codeActionsOnSave": {},
     "vim.useSystemClipboard": true,
-    "vim.leader": ",",
+    "vim.leader": " ",
     "vim.digraphs": {},
     "vim.normalModeKeyBindings": [
         {
@@ -22,7 +21,7 @@
         {
             "before": [
                 "<leader>",
-                "<C-w>"
+                "x"
             ],
             "commands": [
                 "workbench.action.closeActiveEditor",
@@ -31,7 +30,7 @@
         {
             "before": [
                 "<leader>",
-                "<C-b>"
+                "e"
             ],
             "commands": [
                 "workbench.action.toggleSidebarVisibility",
@@ -40,7 +39,7 @@
         {
             "before": [
                 "<leader>",
-                "<C-'>"
+                "t"
             ],
             "commands": [
                 "workbench.action.toggleAuxiliaryBar",
@@ -62,20 +61,10 @@
                 "f"
             ],
             "commands": [
-                "editor.action.formatDocument",
+                "workbench.view.search",
             ],
         },
         {
-            "before": [
-                "<leader>",
-                "f",
-                "i"
-            ],
-            "commands": [
-                "python.sortImports",
-            ],
-        },
-                {
             "before": [
                 "<leader>",
                 "<C-a>"
@@ -100,6 +89,16 @@
             ],
             "commands": [
                 "workbench.action.terminal.focus"
+            ]
+        },
+        // run makefile
+        {
+            "before": ["<leader>", "m"],
+            "commands": [
+                {
+                    "command": "workbench.action.tasks.runTask",
+                    "args": "make"
+                }
             ]
         }
     ],
@@ -134,7 +133,6 @@
         }
     ],
     "vim.normalModeKeyBindingsNonRecursive": [
-
         {
             "before": [
                 "J"
@@ -162,11 +160,10 @@
                 "J"
             ]
         },
-                {
+        {
             "before": [
                 "<Leader>",
-                "t",
-                "n"
+                "l"
             ],
             "commands": [
                 ":tabnext"
@@ -175,17 +172,37 @@
         {
             "before": [
                 "<Leader>",
-                "t",
-                "p"
+                "h"
             ],
             "commands": [
                 ":tabprev"
             ]
         },
     ],
-    "workbench.colorTheme": "Visual Studio Light - C++",
+    "workbench.colorTheme": "Default Light Modern",
     "editor.cursorBlinking": "solid",
     "editor.fontFamily": "'Iosevka Fixed Medium', 'monospace', monospace",
     "makefile.configureOnOpen": true,
-    "editor.fontSize": 16,
+    "liveServer.settings.donotShowInfoMsg": true,
+    "editor.lineNumbers": "relative",
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "haskell.manageHLS": "GHCup",
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false,
+        "haskell": false
+    },
+    "github.copilot.nextEditSuggestions.enabled": false,
+    "chat.commandCenter.enabled": false,
+    "window.controlsStyle": "custom",
+    "window.title": "${dirty}${activeEditorShort}${separator}${rootName}${separator}${profileName}",
+    "window.menuBarVisibility": "visible",
+    "window.menuStyle": "custom",
+    "window.commandCenter": false,
+    "workbench.layoutControl.enabled": false,
+    "workbench.activityBar.location": "top",
 }
