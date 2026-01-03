@@ -15,7 +15,7 @@ sudo pacman -S zsh zsh-completions fzf
 ## Neovim
 
 ```
-sudo pacman -S --needed neovim python-neovim xclip unzip base-devel ripgrep fd
+sudo pacman -S --needed neovim python-neovim git lazygit tree-sitter-cli curl xclip unzip base-devel fzf ripgrep fd
 ```
 
 ## i3
