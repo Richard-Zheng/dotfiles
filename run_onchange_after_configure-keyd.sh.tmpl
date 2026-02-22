@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This script runs if either of these files change:
+# common hash: {{ include "dot_config/keyd/common" | sha256sum }}
+# normal.conf hash: {{ include "dot_config/keyd/normal.conf" | sha256sum }}
+
+set -eufo pipefail
+
+echo "Config change detected. Syncing keyd to /etc/keyd..."
+
+# 1. Ensure target directory exists
+sudo mkdir -p /etc/keyd/
+
+# 2. Sync all files from your local config to /etc
+# Using -u (update) or just copying both ensures /etc stays in sync
+sudo cp {{ joinPath .chezmoi.homeDir ".config/keyd/common" | quote }} /etc/keyd/common
+sudo cp {{ joinPath .chezmoi.homeDir ".config/keyd/normal.conf" | quote }} /etc/keyd/normal.conf
+
+# 3. Reload keyd to apply the 'include' changes
+if systemctl is-active --quiet keyd; then
+    sudo keyd reload || sudo systemctl restart keyd
+fi
+
