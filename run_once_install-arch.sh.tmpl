@@ -1,0 +1,77 @@
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+
+# 遇到任何错误时立即退出脚本，防止错误累积
+set -e 
+
+echo "======================================================="
+echo "检测到 Arch Linux，开始执行自动化安装与配置..."
+echo "======================================================="
+
+# ---------------------------------------------------------
+# 1. 基础系统服务与桌面环境 (Plasma KDE + i3)
+# ---------------------------------------------------------
+echo "[1/6] 正在安装基础桌面环境和窗口管理器..."
+sudo pacman -S --needed --noconfirm plasma-meta konsole dolphin sddm i3-wm rofi alacritty arandr dunst
+sudo systemctl enable sddm
+sudo systemctl enable NetworkManager
+
+# ---------------------------------------------------------
+# 2. 中文输入法配置 (Fcitx5)
+# ---------------------------------------------------------
+echo "[2/6] 正在安装和配置中文输入法..."
+sudo pacman -S --needed --noconfirm fcitx5-im fcitx5-chinese-addons
+if ! grep -q "GTK_IM_MODULE=fcitx" /etc/environment; then
+    echo "配置输入法环境变量..."
+    cat << EOF | sudo tee -a /etc/environment
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS=@im=fcitx
+SDL_IM_MODULE=fcitx
+GLFW_IM_MODULE=ibus
+EOF
+fi
+
+# ---------------------------------------------------------
+# 3. 添加 Arch Linux CN 源
+# ---------------------------------------------------------
+echo "[3/6] 正在配置 archlinuxcn 软件源..."
+if ! grep -q "\[archlinuxcn\]" /etc/pacman.conf; then
+    cat << EOF | sudo tee -a /etc/pacman.conf
+
+[archlinuxcn]
+Server = https://mirror.nju.edu.cn/archlinuxcn/\$arch
+EOF
+    sudo pacman -Sy
+    sudo pacman-key --lsign-key "farseerfc@archlinux.org"
+    sudo pacman -S --needed --noconfirm archlinuxcn-keyring
+fi
+
+# ---------------------------------------------------------
+# 4. 终端环境与字体 (zsh, fzf, fonts)
+# ---------------------------------------------------------
+echo "[4/6] 正在安装终端环境和字体..."
+sudo pacman -S --needed --noconfirm zsh zsh-completions fzf paru
+paru -S --needed --noconfirm i3blocks
+sudo pacman -S --needed --noconfirm noto-fonts-cjk ttf-fira-code ttf-fira-sans ttf-nerd-fonts-symbols ttf-twemoji
+
+# ---------------------------------------------------------
+# 5. Neovim 及相关开发工具 (含依赖)
+# ---------------------------------------------------------
+echo "[5/6] 正在安装 Neovim 及开发依赖..."
+# base-devel 提供编译环境, ripgrep/fd/unzip 是 Neovim 现代插件的刚需
+sudo pacman -S --needed --noconfirm neovim python-neovim git lazygit tree-sitter-cli curl xclip unzip base-devel fzf ripgrep fd
+
+# ---------------------------------------------------------
+# 6. Keyd 基础安装与服务启用
+# ---------------------------------------------------------
+echo "[6/6] 正在安装 Keyd..."
+sudo pacman -S --needed --noconfirm keyd
+# 这里只管设为开机自启。配置同步和重启已交由 run_onchange 脚本处理
+sudo systemctl enable keyd
+
+echo "======================================================="
+echo "Arch Linux 基础包安装与配置执行完毕！"
+echo "======================================================="
+
+{{ end -}}
