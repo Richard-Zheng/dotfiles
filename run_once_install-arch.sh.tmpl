@@ -1,28 +1,21 @@
 {{ if eq .chezmoi.osRelease.id "arch" -}}
 #!/bin/bash
 
-# 遇到任何错误时立即退出脚本，防止错误累积
+# Exit immediately if a command exits with a non-zero status
 set -e 
 
 echo "======================================================="
-echo "检测到 Arch Linux，开始执行自动化安装与配置..."
+echo "Detected Arch Linux, starting automated setup..."
 echo "======================================================="
 
 # ---------------------------------------------------------
-# 1. 基础系统服务与桌面环境 (Plasma KDE + i3)
+# 1. System Pre-configuration: Environment Variables
 # ---------------------------------------------------------
-echo "[1/6] 正在安装基础桌面环境和窗口管理器..."
-sudo pacman -S --needed --noconfirm plasma-meta konsole dolphin sddm i3-wm rofi alacritty arandr dunst
-sudo systemctl enable sddm
-sudo systemctl enable NetworkManager
+echo "[1/3] Configuring system environment variables..."
 
-# ---------------------------------------------------------
-# 2. 中文输入法配置 (Fcitx5)
-# ---------------------------------------------------------
-echo "[2/6] 正在安装和配置中文输入法..."
-sudo pacman -S --needed --noconfirm fcitx5-im fcitx5-chinese-addons
+# Environment variables for Fcitx5 (Chinese Input Method)
 if ! grep -q "GTK_IM_MODULE=fcitx" /etc/environment; then
-    echo "配置输入法环境变量..."
+    echo " -> Appending Fcitx5 variables to /etc/environment..."
     cat << EOF | sudo tee -a /etc/environment
 GTK_IM_MODULE=fcitx
 QT_IM_MODULE=fcitx
@@ -33,45 +26,42 @@ EOF
 fi
 
 # ---------------------------------------------------------
-# 3. 添加 Arch Linux CN 源
+# 2. Core Packages Installation (Official Repositories)
 # ---------------------------------------------------------
-echo "[3/6] 正在配置 archlinuxcn 软件源..."
-if ! grep -q "\[archlinuxcn\]" /etc/pacman.conf; then
-    cat << EOF | sudo tee -a /etc/pacman.conf
+echo "[2/3] Installing packages from official repositories..."
 
-[archlinuxcn]
-Server = https://mirror.nju.edu.cn/archlinuxcn/\$arch
-EOF
-    sudo pacman -Sy
-    sudo pacman-key --lsign-key "farseerfc@archlinux.org"
-    sudo pacman -S --needed --noconfirm archlinuxcn-keyring
-fi
+# Grouped packages array for easier maintenance
+PACKAGES=(
+    # Base desktop environment and window manager tools
+    plasma-meta konsole dolphin sddm i3-wm rofi alacritty arandr dunst
+    
+    # Input method
+    fcitx5-im fcitx5-chinese-addons
+    
+    # Terminal utilities and fonts
+    zsh zsh-completions fzf
+    noto-fonts-cjk ttf-firacode-nerd ttf-fira-sans ttf-nerd-fonts-symbols
+    
+    # Neovim and development dependencies
+    neovim python-neovim git lazygit tree-sitter-cli curl xclip unzip base-devel ripgrep fd
+    
+    # System utilities
+    keyd
+)
 
-# ---------------------------------------------------------
-# 4. 终端环境与字体 (zsh, fzf, fonts)
-# ---------------------------------------------------------
-echo "[4/6] 正在安装终端环境和字体..."
-sudo pacman -S --needed --noconfirm zsh zsh-completions fzf paru
-paru -S --needed --noconfirm i3blocks
-sudo pacman -S --needed --noconfirm noto-fonts-cjk ttf-fira-code ttf-fira-sans ttf-nerd-fonts-symbols ttf-twemoji
-
-# ---------------------------------------------------------
-# 5. Neovim 及相关开发工具 (含依赖)
-# ---------------------------------------------------------
-echo "[5/6] 正在安装 Neovim 及开发依赖..."
-# base-devel 提供编译环境, ripgrep/fd/unzip 是 Neovim 现代插件的刚需
-sudo pacman -S --needed --noconfirm neovim python-neovim git lazygit tree-sitter-cli curl xclip unzip base-devel fzf ripgrep fd
+# Batch install all packages
+sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
 
 # ---------------------------------------------------------
-# 6. Keyd 基础安装与服务启用
+# 3. Enable System Services
 # ---------------------------------------------------------
-echo "[6/6] 正在安装 Keyd..."
-sudo pacman -S --needed --noconfirm keyd
-# 这里只管设为开机自启。配置同步和重启已交由 run_onchange 脚本处理
+echo "[3/3] Enabling system services for autostart..."
+sudo systemctl enable sddm
+sudo systemctl enable NetworkManager
 sudo systemctl enable keyd
 
 echo "======================================================="
-echo "Arch Linux 基础包安装与配置执行完毕！"
+echo "Arch Linux basic setup completed successfully!"
 echo "======================================================="
 
 {{ end -}}
