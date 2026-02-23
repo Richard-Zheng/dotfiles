@@ -1,0 +1,38 @@
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+echo "======================================================="
+echo "Configuring Arch Linux CN repository..."
+echo "======================================================="
+
+# Check if archlinuxcn is already present in pacman.conf
+if ! grep -q "\[archlinuxcn\]" /etc/pacman.conf; then
+    echo " -> Appending [archlinuxcn] to /etc/pacman.conf..."
+    # Add the NJU mirror for archlinuxcn
+    cat << EOF | sudo tee -a /etc/pacman.conf
+
+[archlinuxcn]
+Server = https://mirrors.nju.edu.cn/archlinuxcn/\$arch
+EOF
+
+    echo " -> Synchronizing package databases..."
+    # Sync the database first so pacman knows about the keyring package
+    sudo pacman -Sy
+
+    echo " -> Installing archlinuxcn-keyring..."
+    # Install the keyring to trust all packages from the CN repository
+    sudo pacman -S --needed --noconfirm archlinuxcn-keyring
+    
+    echo " -> Arch Linux CN repository configured successfully!"
+else
+    echo " -> Arch Linux CN repository is already configured. Skipping."
+fi
+
+echo "======================================================="
+echo "Arch Linux CN setup completed!"
+echo "======================================================="
+
+{{ end -}}
