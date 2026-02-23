@@ -33,8 +33,10 @@ echo "[2/3] Installing packages from official repositories..."
 # Grouped packages array for easier maintenance
 PACKAGES=(
     # Base desktop environment and window manager tools
-    plasma-meta konsole dolphin sddm
-    i3-wm i3blocks rofi alacritty arandr dunst
+    #plasma-meta
+    breeze breeze-gtk breeze-icons
+    konsole dolphin sddm
+    i3-wm i3blocks rofi alacritty arandr dunst lxappearance
     
     # Input method
     fcitx5-im fcitx5-chinese-addons
@@ -45,6 +47,7 @@ PACKAGES=(
     
     # Neovim and development dependencies
     neovim python-neovim git lazygit tree-sitter-cli curl xclip unzip base-devel ripgrep fd
+    tmux
     
     # System utilities
     keyd
