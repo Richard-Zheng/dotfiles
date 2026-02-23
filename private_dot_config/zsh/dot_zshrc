@@ -53,6 +53,8 @@ zinit snippet PZT::modules/pacman/init.zsh
 #   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 # fi
 
+# Env
+export EDITOR=nvim
 # For ICS PA
 export NEMU_HOME=$HOME/ics2024/nemu
 export AM_HOME=$HOME/ics2024/abstract-machine
