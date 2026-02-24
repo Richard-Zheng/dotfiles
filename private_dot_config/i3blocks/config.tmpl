@@ -97,7 +97,7 @@ markup=pango
 interval=10
 T_WARN=70
 T_CRIT=90
-SENSOR_CHIP="acpitz-acpi-0"
+SENSOR_CHIP={{ if eq .chezmoi.hostname "tcarch" }}"coretemp-isa-0000"{{ else }}"acpitz-acpi-0"{{ end }}
 
 # Battery indicator
 #
