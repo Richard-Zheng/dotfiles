@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Exit immediately if a command exits with a non-zero status
-set -e 
+set -e
 
 echo "======================================================="
 echo "Detected Arch Linux, starting automated setup..."
@@ -15,8 +15,8 @@ echo "[1/3] Configuring system environment variables..."
 
 # Environment variables for Fcitx5 (Chinese Input Method)
 if ! grep -q "GTK_IM_MODULE=fcitx" /etc/environment; then
-    echo " -> Appending Fcitx5 variables to /etc/environment..."
-    cat << EOF | sudo tee -a /etc/environment
+  echo " -> Appending Fcitx5 variables to /etc/environment..."
+  cat <<EOF | sudo tee -a /etc/environment
 GTK_IM_MODULE=fcitx
 QT_IM_MODULE=fcitx
 XMODIFIERS=@im=fcitx
@@ -32,27 +32,29 @@ echo "[2/3] Installing packages from official repositories..."
 
 # Grouped packages array for easier maintenance
 PACKAGES=(
-    # Base desktop environment and window manager tools
-    #plasma-meta
-    breeze breeze-gtk breeze-icons
-    konsole dolphin okular spectacle vlc sddm
-    i3-wm i3blocks rofi alacritty arandr dunst lxappearance
-    # for i3blocks
-    acpi lm_sensors sysstat bc alsa-utils
-    
-    # Input method
-    fcitx5-im fcitx5-chinese-addons
-    
-    # Terminal utilities and fonts
-    zsh zsh-completions fzf
-    noto-fonts-cjk ttf-firacode-nerd ttf-fira-sans ttf-nerd-fonts-symbols
-    
-    # Neovim and development dependencies
-    neovim python-neovim git lazygit tree-sitter-cli curl xclip unzip base-devel ripgrep fd
-    tmux
-    
-    # System utilities
-    keyd
+  # Base desktop environment and window manager tools
+  #plasma-meta
+  breeze breeze-gtk breeze-icons
+  pipewire pipewire-pulse pavucontrol
+  konsole dolphin okular spectacle vlc sddm
+  i3-wm i3blocks rofi alacritty arandr dunst lxappearance
+  # for i3blocks
+  acpi lm_sensors sysstat bc alsa-utils
+  blueman bluez
+
+  # Input method
+  fcitx5-im fcitx5-chinese-addons
+
+  # Terminal utilities and fonts
+  zsh zsh-completions fzf
+  noto-fonts-cjk ttf-firacode-nerd ttf-fira-sans ttf-nerd-fonts-symbols
+
+  # Neovim and development dependencies
+  neovim python-neovim git lazygit tree-sitter-cli curl xclip unzip base-devel ripgrep fd
+  tmux
+
+  # System utilities
+  keyd btrfs-progs
 )
 
 # Batch install all packages
