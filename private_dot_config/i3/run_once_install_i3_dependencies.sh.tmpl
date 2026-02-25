@@ -1,0 +1,44 @@
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+echo "Installing i3 dependencies..."
+
+PACKAGES=(
+  i3-wm
+  dex
+  fcitx5
+  dunst
+  xss-lock
+  i3lock
+  network-manager-applet
+  pasystray
+  pipewire-pulse
+  playerctl
+  brightnessctl
+  alacritty
+  rofi
+  i3blocks
+  imagemagick
+  jq
+  xclip
+  maim
+
+  # Utilities
+  lxappearance
+  arandr
+  bluez
+  blueman
+
+  # Theme and icons
+  breeze
+  breeze-gtk
+  breeze-icons
+)
+
+# Batch install all packages
+sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+{{ end -}}

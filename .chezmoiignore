@@ -1,1 +1,6 @@
-keyd/
+.DS_Store
+.zcompdump
+lazy_lock.json
+
+keyd/common
+keyd/normal.conf
