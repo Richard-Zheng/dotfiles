@@ -68,7 +68,7 @@
     },
     {
       // Decrease window height
-      "before": ["<C-Up>"],
+      "before": ["<C-Down>"],
       "commands": ["workbench.action.decreaseViewHeight"]
     },
     {

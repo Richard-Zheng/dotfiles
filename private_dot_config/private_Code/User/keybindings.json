@@ -14,6 +14,22 @@
         "command": "-editor.action.copyLinesDownAction",
         "when": "editorTextFocus && !editorReadonly"
     },
+    // Hide Explorer with 'q' (Like Neo-tree)
+    {
+        "key": "q",
+        "command": "workbench.action.toggleSidebarVisibility",
+        "when": "filesExplorerFocus && !inputFocus"
+    },
+    {
+        "key": "q",
+        "command": "workbench.action.closeAuxiliaryBar",
+        "when": "auxiliaryBarFocus && !inputFocus"
+    },
+    // ctrl + b : toggle sidebar
+    {
+        "key": "ctrl+b",
+        "command": "workbench.action.toggleSidebarVisibility"
+    },
     // Ctrl + h : 向左聚焦窗口
     // Ctrl + l : 向右聚焦窗口
     // Ctrl + j : 移动到 terminal
