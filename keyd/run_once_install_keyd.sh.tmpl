@@ -1,0 +1,18 @@
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+echo "Installing keyd..."
+
+PACKAGES=(
+  keyd
+)
+
+# Batch install all packages
+sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+sudo systemctl enable keyd
+
+{{ end -}}

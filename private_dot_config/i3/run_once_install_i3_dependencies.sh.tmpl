@@ -9,7 +9,6 @@ echo "Installing i3 dependencies..."
 PACKAGES=(
   i3-wm
   dex
-  fcitx5
   dunst
   xss-lock
   i3lock
@@ -27,6 +26,7 @@ PACKAGES=(
   maim
   terminus-font
   xorg-xset
+  sddm
 
   # Utilities
   lxappearance
@@ -38,9 +38,30 @@ PACKAGES=(
   breeze
   breeze-gtk
   breeze-icons
+
+  # Input method
+  fcitx5-im fcitx5-chinese-addons fcitx5-breeze
+
+  # Basic desktop applications
+  konsole dolphin okular spectacle vlc
 )
 
 # Batch install all packages
 sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+# Environment variables for Fcitx5 (Chinese Input Method)
+if ! grep -q "GTK_IM_MODULE=fcitx" /etc/environment; then
+  echo "No Fcitx5 environment variables found in /etc/environment."
+  echo " -> Appending Fcitx5 variables to /etc/environment..."
+  cat <<EOF | sudo tee -a /etc/environment
+GTK_IM_MODULE=fcitx
+QT_IM_MODULE=fcitx
+XMODIFIERS=@im=fcitx
+SDL_IM_MODULE=fcitx
+GLFW_IM_MODULE=ibus
+EOF
+fi
+
+sudo systemctl enable sddm
 
 {{ end -}}

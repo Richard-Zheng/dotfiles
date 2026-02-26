@@ -9,36 +9,14 @@ echo "Detected Arch Linux, starting automated setup..."
 echo "======================================================="
 
 # ---------------------------------------------------------
-# 1. System Pre-configuration: Environment Variables
+# 1. Core Packages Installation (Official Repositories)
 # ---------------------------------------------------------
-echo "[1/3] Configuring system environment variables..."
-
-# Environment variables for Fcitx5 (Chinese Input Method)
-if ! grep -q "GTK_IM_MODULE=fcitx" /etc/environment; then
-  echo " -> Appending Fcitx5 variables to /etc/environment..."
-  cat <<EOF | sudo tee -a /etc/environment
-GTK_IM_MODULE=fcitx
-QT_IM_MODULE=fcitx
-XMODIFIERS=@im=fcitx
-SDL_IM_MODULE=fcitx
-GLFW_IM_MODULE=ibus
-EOF
-fi
-
-# ---------------------------------------------------------
-# 2. Core Packages Installation (Official Repositories)
-# ---------------------------------------------------------
-echo "[2/3] Installing packages from official repositories..."
+echo "[1/2] Installing packages from official repositories..."
 
 # Grouped packages array for easier maintenance
 PACKAGES=(
-  # Base desktop environment and window manager tools
-  konsole dolphin okular spectacle vlc sddm
   # for i3blocks
   acpi lm_sensors sysstat bc alsa-utils
-
-  # Input method
-  fcitx5-im fcitx5-chinese-addons
 
   # Terminal utilities and fonts
   zsh zsh-completions fzf
@@ -49,19 +27,17 @@ PACKAGES=(
   tmux
 
   # System utilities
-  keyd btrfs-progs
+  btrfs-progs
 )
 
 # Batch install all packages
 sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
 
 # ---------------------------------------------------------
-# 3. Enable System Services
+# 2. Enable System Services
 # ---------------------------------------------------------
-echo "[3/3] Enabling system services for autostart..."
-sudo systemctl enable sddm
+echo "[2/2] Enabling system services for autostart..."
 sudo systemctl enable NetworkManager
-sudo systemctl enable keyd
 
 echo "======================================================="
 echo "Arch Linux basic setup completed successfully!"
