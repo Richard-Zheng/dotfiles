@@ -204,18 +204,20 @@ int main(int argc, char *argv[])
   ulli received, sent, received_old, sent_old;
   double rx = 0, tx = 0;
   
-  int show_speed = 0; // <--- 修改为 0，默认收起状态
+  int show_speed = 0; // Default to collapsed state
   int eof_reached = 0;
 
   get_values(ifaces, num_ifaces, &s_old, &received_old, &sent_old);
 
-  // 【关键】：在进入 poll 阻塞前，先输出一次初始状态，防止 i3blocks 启动时模块不可见/不可点击
+  // Output the initial state before entering the poll loop
+  // to ensure the module is visible and clickable on startup.
   printf("<span fallback='true'>--</span>\n");
   fflush(stdout);
 
   while (1) {
     int ret = 0;
-    // 如果是显示状态，超时为 t 秒；如果是收起状态，超时为 -1 (无限期阻塞，彻底休眠)
+    // If visible, timeout is t seconds (t * 1000 ms).
+    // If collapsed, timeout is -1 (infinite block, zero CPU).
     int timeout = show_speed ? (t * 1000) : -1;
 
     if (!eof_reached) {
@@ -227,11 +229,12 @@ int main(int argc, char *argv[])
         ssize_t n = read(STDIN_FILENO, buf, sizeof(buf) - 1);
         if (n > 0) {
           buf[n] = '\0';
-          if (strchr(buf, '1') != NULL) { // 捕获到左键点击
-            show_speed = !show_speed;     // 切换状态
+          if (strchr(buf, '1') != NULL) { // Left-click detected
+            show_speed = !show_speed;     // Toggle visibility
             
             if (show_speed) {
-              // 刚刚展开：立刻刷新一次基准值，防止瞬间网速爆表
+              // Flush new baseline values 
+              // to prevent calculating from accumulated idle traffic.
               get_values(ifaces, num_ifaces, &s_old, &received_old, &sent_old);
               rx = 0; 
               tx = 0;
@@ -257,7 +260,7 @@ int main(int argc, char *argv[])
       sent_old = sent;
     }
 
-    // --- UI 渲染部分 ---
+    // --- UI Rendering ---
     if (show_speed) {
       printf("%s", label);
       display(unit, divisor, rx, warningrx, criticalrx);
