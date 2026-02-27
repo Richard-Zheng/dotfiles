@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <poll.h>
 
 #define RED "#FF7373"
 #define ORANGE "#FFA500"
@@ -201,25 +202,73 @@ int main(int argc, char *argv[])
 
   time_t s, s_old;
   ulli received, sent, received_old, sent_old;
-  double rx, tx;
+  double rx = 0, tx = 0;
+  
+  int show_speed = 0; // <--- 修改为 0，默认收起状态
+  int eof_reached = 0;
 
   get_values(ifaces, num_ifaces, &s_old, &received_old, &sent_old);
 
-  while (1) {
-    sleep(t);
-    get_values(ifaces, num_ifaces, &s, &received, &sent);
+  // 【关键】：在进入 poll 阻塞前，先输出一次初始状态，防止 i3blocks 启动时模块不可见/不可点击
+  printf("<span fallback='true'>--</span>\n");
+  fflush(stdout);
 
-    rx = (received - received_old) / (float)(s - s_old);
-    tx = (sent - sent_old) / (float)(s - s_old);
-    printf("%s", label);
-    display(unit, divisor, rx, warningrx, criticalrx);
-    printf(" ");
-    display(unit, divisor, tx, warningtx, criticaltx);
-    printf("\n");
+  while (1) {
+    int ret = 0;
+    // 如果是显示状态，超时为 t 秒；如果是收起状态，超时为 -1 (无限期阻塞，彻底休眠)
+    int timeout = show_speed ? (t * 1000) : -1;
+
+    if (!eof_reached) {
+      struct pollfd pfd = { .fd = STDIN_FILENO, .events = POLLIN };
+      ret = poll(&pfd, 1, timeout);
+
+      if (ret > 0 && (pfd.revents & POLLIN)) {
+        char buf[64];
+        ssize_t n = read(STDIN_FILENO, buf, sizeof(buf) - 1);
+        if (n > 0) {
+          buf[n] = '\0';
+          if (strchr(buf, '1') != NULL) { // 捕获到左键点击
+            show_speed = !show_speed;     // 切换状态
+            
+            if (show_speed) {
+              // 刚刚展开：立刻刷新一次基准值，防止瞬间网速爆表
+              get_values(ifaces, num_ifaces, &s_old, &received_old, &sent_old);
+              rx = 0; 
+              tx = 0;
+            }
+          }
+        } else {
+          eof_reached = 1; 
+        }
+      }
+    } else {
+      if (show_speed) sleep(t); 
+      else pause(); 
+    }
+
+    if (show_speed && (ret == 0 || eof_reached)) {
+      get_values(ifaces, num_ifaces, &s, &received, &sent);
+      if (s > s_old) {
+        rx = (received - received_old) / (float)(s - s_old);
+        tx = (sent - sent_old) / (float)(s - s_old);
+      }
+      s_old = s;
+      received_old = received;
+      sent_old = sent;
+    }
+
+    // --- UI 渲染部分 ---
+    if (show_speed) {
+      printf("%s", label);
+      display(unit, divisor, rx, warningrx, criticalrx);
+      printf(" ");
+      display(unit, divisor, tx, warningtx, criticaltx);
+      printf("\n");
+    } else {
+      printf("<span fallback='true'>--</span>\n");
+    }
+    
     fflush(stdout);
-    s_old = s;
-    received_old = received;
-    sent_old = sent;
   }
 
   free(ifaces);
