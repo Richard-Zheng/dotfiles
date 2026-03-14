@@ -63,6 +63,43 @@ if ($status eq 'Discharging') {
 	}
 }
 
+my $watts = "";
+
+# Find all battery directories. acpi indexes from 0, but sysfs might use BAT1.
+# Sorting ensures the order matches what acpi likely sees.
+my @bat_dirs = sort glob("/sys/class/power_supply/BAT*");
+my $sysfs_bat = $bat_dirs[$bat_number];
+
+if (defined $sysfs_bat) {
+    my $power_now_file = "$sysfs_bat/power_now";
+    my $current_now_file = "$sysfs_bat/current_now";
+    my $voltage_now_file = "$sysfs_bat/voltage_now";
+
+    if (open(my $fh, '<', $power_now_file)) {
+        my $micro_watts = <$fh>;
+        close($fh);
+        chomp($micro_watts);
+        if (defined $micro_watts && $micro_watts =~ /^\d+$/ && $micro_watts > 0) {
+            $watts = sprintf("%.1f W", $micro_watts / 1000000);
+        }
+    } elsif (open(my $fh_c, '<', $current_now_file) && open(my $fh_v, '<', $voltage_now_file)) {
+        my $micro_amps = <$fh_c>;
+        my $micro_volts = <$fh_v>;
+        close($fh_c);
+        close($fh_v);
+        chomp($micro_amps);
+        chomp($micro_volts);
+        if (defined $micro_amps && $micro_amps =~ /^\d+$/ && defined $micro_volts && $micro_volts =~ /^\d+$/) {
+            # P = V * I (microAmps * microVolts / 10^12 = Watts)
+            $watts = sprintf("%.1f W", ($micro_amps * $micro_volts) / 1000000000000);
+        }
+    }
+}
+
+if ($watts ne "") {
+    $full_text .= " $watts";
+}
+
 $short_text = $full_text;
 
 if ($acpi =~ /(\d\d:\d\d):/) {
