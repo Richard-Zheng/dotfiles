@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# Get the current profile
+CURRENT_PROFILE=$(powerprofilesctl get)
+
+# Handle i3blocks mouse click events
+# BLOCK_BUTTON: 1=Left click, 2=Middle click, 3=Right click
+if [ "$BLOCK_BUTTON" = "1" ]; then
+    # Define the toggle logic: power-saver -> balanced -> performance -> power-saver
+    if [ "$CURRENT_PROFILE" = "power-saver" ]; then
+        powerprofilesctl set balanced
+        CURRENT_PROFILE="balanced"
+    elif [ "$CURRENT_PROFILE" = "balanced" ]; then
+        powerprofilesctl set performance
+        CURRENT_PROFILE="performance"
+    elif [ "$CURRENT_PROFILE" = "performance" ]; then
+        powerprofilesctl set power-saver
+        CURRENT_PROFILE="power-saver"
+    fi
+fi
+
+# Output different icons and text based on the current profile (customize as you like)
+# Print two lines: the first is full_text, the second is short_text
+case "$CURRENT_PROFILE" in
+    "power-saver")
+        echo "🌱 Saver"
+        echo "🌱"
+        echo "#A8FF00" # i3blocks color
+        ;;
+    "balanced")
+        echo "⚖️ Balanced"
+        echo "⚖️"
+        echo "#FFF600"
+        ;;
+    "performance")
+        echo "🚀 Performance"
+        echo "🚀"
+        echo "#FF0000"
+        ;;
+    *)
+        echo "❓ Unknown"
+        echo "❓"
+        ;;
+esac
+
+exit 0

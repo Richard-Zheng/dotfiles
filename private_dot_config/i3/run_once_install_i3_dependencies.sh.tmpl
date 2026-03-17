@@ -31,6 +31,10 @@ PACKAGES=(
   sddm
   kwallet
 
+  # Laptop
+  powertop
+  power-profiles-daemon
+
   # Utilities
   lxappearance
   arandr
@@ -71,6 +75,7 @@ EOF
 fi
 
 sudo systemctl enable sddm
-systemctl --user enable autorandr.service
+sudo systemctl enable --now autorandr.service
+sudo systemctl enable --now power-profiles-daemon.service
 
 {{ end -}}

@@ -102,6 +102,11 @@ T_WARN=70
 T_CRIT=90
 SENSOR_CHIP={{ if eq .chezmoi.hostname "tcarch" }}"coretemp-isa-0000"{{ else }}"acpitz-acpi-0"{{ end }}
 
+[power-profiles-daemon]
+label=<span color="#EE37B8">PPD</span>
+markup=pango
+interval=30
+
 # Battery indicator
 #
 # The battery instance defaults to 0.
