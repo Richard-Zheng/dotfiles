@@ -3,7 +3,8 @@
 keyd/
 laptop/
 
-# ls -d private_dot_config/*/ | sed 's|^private_dot_config/|.config/|'
+# ls -d private_*/*/ | sed -E 's|^private_dot_|.|; s|private_||'
+# ls -p private_dot_config | grep -v / | sed 's|^|.config/|'
 # then delete what should not be ignored
 
 .config/alacritty/
@@ -13,10 +14,11 @@ laptop/
 .config/i3/
 .config/i3blocks/
 .config/i3status/
-.config/private_Code/
-.config/private_fcitx5/
+.config/Code/
+.config/fcitx5/
 .config/rofi/
 .config/snapper/
+.config/mineapps.list
 
 {{- end }}
 
