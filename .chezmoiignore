@@ -18,7 +18,7 @@ laptop/
 .config/fcitx5/
 .config/rofi/
 .config/snapper/
-.config/mineapps.list
+.config/mimeapps.list
 
 {{- end }}
 
