@@ -1,2 +1,5 @@
+{{- $is_server := promptBoolOnce . "is_server" "Is this a headless server" -}}
+
 [data]
+    is_server = {{ $is_server }}
     enable_snapper = false

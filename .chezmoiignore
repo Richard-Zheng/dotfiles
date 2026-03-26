@@ -1,3 +1,24 @@
+{{- if .is_server }}
+
+keyd/
+laptop/
+
+# Tip: ls -d private_dot_config/*/ then delete what you want to have
+
+private_dot_config/alacritty/
+private_dot_config/autorandr/
+private_dot_config/dunst/
+private_dot_config/fontconfig/
+private_dot_config/i3/
+private_dot_config/i3blocks/
+private_dot_config/i3status/
+private_dot_config/private_Code/
+private_dot_config/private_fcitx5/
+private_dot_config/rofi/
+private_dot_config/snapper/
+
+{{- end }}
+
 .DS_Store
 .zcompdump
 lazy_lock.json
