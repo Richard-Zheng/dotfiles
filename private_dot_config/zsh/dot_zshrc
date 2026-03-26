@@ -97,7 +97,9 @@ zinit wait lucid light-mode for \
   atload"autoload -U colors && colors" \
     OMZP::colored-man-pages \
 
-zinit ice as"command" from"gh-r" bpick"*atuin-x86_64-unknown-linux-gnu.tar.gz" mv"atuin*/atuin -> atuin" \
+local atuin_os="x86_64-unknown-linux-gnu.tar.gz"
+[[ "$OSTYPE" == "darwin"* ]] && atuin_os="aarch64-apple-darwin.tar.gz"
+zinit ice as"command" from"gh-r" bpick"*atuin-${atuin_os}*" mv"atuin*/atuin -> atuin" \
     atclone"./atuin init zsh > init.zsh; ./atuin gen-completions --shell zsh > _atuin" \
     atpull"%atclone" src"init.zsh"
 zinit light atuinsh/atuin
@@ -114,9 +116,11 @@ zinit snippet PZT::modules/pacman/init.zsh
 # Env
 export EDITOR=nvim
 # For ICS PA
-export NEMU_HOME=$HOME/ics2024/nemu
-export AM_HOME=$HOME/ics2024/abstract-machine
-export NAVY_HOME=$HOME/ics2024/navy-apps
+[[ -d ~/ics2024 ]] && {
+    export NEMU_HOME=$HOME/ics2024/nemu
+    export AM_HOME=$HOME/ics2024/abstract-machine
+    export NAVY_HOME=$HOME/ics2024/navy-apps
+}
 
 # History file
 HISTFILE=~/.zsh_history
