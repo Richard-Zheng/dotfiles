@@ -19,7 +19,7 @@ PACKAGES=(
   brightnessctl
   alacritty
   rofi
-  i3blocks
+  i3blocks acpi lm_sensors sysstat bc alsa-utils
   imagemagick
   jq
   xclip
@@ -75,6 +75,7 @@ EOF
 fi
 
 sudo systemctl enable sddm
+sudo systemctl enable NetworkManager
 sudo systemctl enable --now power-profiles-daemon.service
 
 {{ end -}}

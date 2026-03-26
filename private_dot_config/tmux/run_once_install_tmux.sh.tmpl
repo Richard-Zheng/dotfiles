@@ -1,0 +1,15 @@
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# Grouped packages array for easier maintenance
+PACKAGES=(
+  tmux
+)
+
+# Batch install all packages
+sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+{{ end -}}

@@ -1,0 +1,17 @@
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+PACKAGES=(
+  cpupower power-profiles-daemon
+
+  # System utilities
+  btrfs-progs
+)
+
+# Batch install all packages
+sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+{{ end -}}

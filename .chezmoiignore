@@ -2,5 +2,7 @@
 .zcompdump
 lazy_lock.json
 
+README.md
+
 keyd/common
 keyd/normal.conf
