@@ -1,0 +1,30 @@
+{{- if .enable_snapper -}}
+#!/bin/bash
+
+# Trigger update if any file in the source snapper directory changes:
+# {{ range (glob (joinPath .chezmoi.sourceDir "private_dot_config/snapper/*")) -}}
+# {{ . | sha256sum }}
+# {{ end -}}
+
+echo "Checking Snapper configuration updates..."
+
+# Safety check: Ensure the binary exists and the destination directory is valid
+if command -v snapper >/dev/null 2>&1 && [ -d /etc/snapper/configs ]; then
+    
+    # Iterate through your managed configs
+    for src in {{ .chezmoi.sourceDir }}/private_dot_config/snapper/*; do
+        filename=$(basename "$src")
+        
+        # Skip hidden files or editor swap files (.swp, ~)
+        [[ "$filename" == .* || "$filename" == *~ ]] && continue
+        
+        echo "Applying config: $filename to /etc/snapper/configs/"
+        
+        # 'install' is safer than 'cp': it sets ownership and permissions in one go
+        # -m 644: root read/write, others read
+        # -o root -g root: ensures system-level ownership
+        sudo install -m 644 -o root -g root "$src" "/etc/snapper/configs/$filename"
+    done
+fi
+
+{{- end -}}
