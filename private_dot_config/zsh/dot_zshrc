@@ -83,6 +83,11 @@ else
   [[ ! -f $_zdir/.p10k.zsh ]] || source $_zdir/.p10k.zsh
 fi
 
+zinit ice from"gh-r" as"program" \
+  atclone"./fzf --zsh > fzf.zsh" \
+  atpull"%atclone" src"fzf.zsh"
+zinit light junegunn/fzf
+
 zinit wait lucid light-mode for \
   atinit"ZINIT[COMPINIT_OPTS]='-d $ZSH_CACHE/.zcompdump-${ZSH_VERSION}'; zicompinit; zicdreplay;" \
     Aloxaf/fzf-tab \

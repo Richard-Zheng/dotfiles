@@ -1,15 +1,25 @@
-{{ if eq .chezmoi.osRelease.id "arch" -}}
 #!/bin/bash
 
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Grouped packages array for easier maintenance
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+# Arch Linux
 PACKAGES=(
-  zsh zsh-completions fzf
+  zsh
 )
 
 # Batch install all packages
 sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+{{ else if eq .chezmoi.osRelease.id "ubuntu" -}}
+# Ubuntu/Debian
+PACKAGES=(
+  zsh
+)
+
+# Update package list and install
+sudo apt-get update
+sudo apt-get install -y "${PACKAGES[@]}"
 
 {{ end -}}
