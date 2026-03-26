@@ -13,8 +13,75 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 source "${ZINIT_HOME}/zinit.zsh"
 
 # Prompt
-zinit ice depth=1; zinit light romkatv/powerlevel10k
-[[ ! -f $_zdir/.p10k.zsh ]] || source $_zdir/.p10k.zsh
+if [[ -n $SSH_CONNECTION ]]; then
+  # --- Remote: Auto-Color Hashing & Timer (ASCII Only) ---
+
+  # 1. Color Hashing Function
+  # Calculates a color code (1-255) based on the string "user@host"
+  function get_identity_color() {
+    local str="%n@%m"
+    local seed=$(echo -n ${(S)str//\%/%%} | cksum | cut -d' ' -f1)
+    # Map to 256-color palette (avoiding very dark colors 0-16 and 232-255)
+    echo $(( (seed % 180) + 20 ))
+  }
+  # Store the color once per session
+  IDENTITY_COLOR=$(get_identity_color)
+
+  # 2. Timer Logic
+  function preexec() {
+    timer=$SECONDS
+  }
+
+  # 3. Prompt Building Logic
+  function precmd() {
+    local exit_status=$?
+    local timer_display=""
+
+    # --- RPROMPT: Timer & Error Logic ---
+    if [[ -n $timer ]]; then
+      local delta=$(( $SECONDS - $timer ))
+      if [[ $exit_status -ne 0 || $delta -ge 1 ]]; then
+        local h=$((delta / 3600))
+        local m=$((delta / 60 % 60))
+        local s=$((delta % 60))
+        [[ $h -gt 0 ]] && timer_display+="${h}h "
+        [[ $m -gt 0 ]] && timer_display+="${m}m "
+        timer_display+="${s}s"
+        local timer_color="%(?.242.red)"
+        export RPROMPT="%F{$timer_color}${timer_display}%f"
+      else
+        export RPROMPT=""
+      fi
+      unset timer
+    else
+      export RPROMPT=""
+    fi
+
+    # --- Git Info ---
+    autoload -Uz vcs_info
+    zstyle ':vcs_info:*' enable git
+    zstyle ':vcs_info:git:*' check-for-changes true
+    zstyle ':vcs_info:git:*' unstagedstr '!'
+    zstyle ':vcs_info:git:*' formats ' %F{242}(%b%u)%f'
+    vcs_info
+
+    # --- PROMPT Construction ---
+    # Time: Grey (242)
+    # User@Host: Auto-Calculated Hashed Color
+    # Path: Yellow (226)
+    local time_p="%F{242}%T%f"
+    local id_p="%F{$IDENTITY_COLOR}%n@%m%f"
+    local path_p="%F{226}%~%f"
+    
+    PROMPT="${time_p} ${id_p} ${path_p}${vcs_info_msg_0_}
+%F{white}%#%f "
+  }
+
+else
+  # --- Local Machine: Powerlevel10k ---
+  zinit ice depth=1; zinit light romkatv/powerlevel10k
+  [[ ! -f $_zdir/.p10k.zsh ]] || source $_zdir/.p10k.zsh
+fi
 
 zinit wait lucid light-mode for \
   atinit"ZINIT[COMPINIT_OPTS]='-d $ZSH_CACHE/.zcompdump-${ZSH_VERSION}'; zicompinit; zicdreplay;" \
@@ -30,9 +97,6 @@ zinit wait lucid light-mode for \
   atload"autoload -U colors && colors" \
     OMZP::colored-man-pages \
 
-# line 1: `atuin` binary as command, from github release, only look at .tar.gz files, use the `atuin` file from the extracted archive
-# line 2: setup at clone(create init.zsh, completion)
-# line 3: pull behavior same as clone, source init.zsh
 zinit ice as"command" from"gh-r" bpick"*atuin-x86_64-unknown-linux-gnu.tar.gz" mv"atuin*/atuin -> atuin" \
     atclone"./atuin init zsh > init.zsh; ./atuin gen-completions --shell zsh > _atuin" \
     atpull"%atclone" src"init.zsh"
@@ -46,13 +110,6 @@ echo 'set -g default-terminal \$ZSH_TMUX_TERM' > ./tmux.only.conf" \
     OMZP::tmux
 
 zinit snippet PZT::modules/pacman/init.zsh
-
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-# fi
 
 # Env
 export EDITOR=nvim
