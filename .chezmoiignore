@@ -3,19 +3,20 @@
 keyd/
 laptop/
 
-# Tip: ls -d private_dot_config/*/ then delete what you want to have
+# ls -d private_dot_config/*/ | sed 's|^private_dot_config/|.config/|'
+# then delete what should not be ignored
 
-private_dot_config/alacritty/
-private_dot_config/autorandr/
-private_dot_config/dunst/
-private_dot_config/fontconfig/
-private_dot_config/i3/
-private_dot_config/i3blocks/
-private_dot_config/i3status/
-private_dot_config/private_Code/
-private_dot_config/private_fcitx5/
-private_dot_config/rofi/
-private_dot_config/snapper/
+.config/alacritty/
+.config/autorandr/
+.config/dunst/
+.config/fontconfig/
+.config/i3/
+.config/i3blocks/
+.config/i3status/
+.config/private_Code/
+.config/private_fcitx5/
+.config/rofi/
+.config/snapper/
 
 {{- end }}
 
