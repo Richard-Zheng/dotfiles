@@ -33,6 +33,9 @@ exec --no-startup-id fcitx5 -d
 # Start dunst
 exec --no-startup-id dunst
 
+# Start workrave
+exec --no-startup-id workrave
+
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
 
