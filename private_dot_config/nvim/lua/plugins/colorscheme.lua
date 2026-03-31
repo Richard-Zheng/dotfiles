@@ -1,10 +1,10 @@
 return {
-  { "miikanissi/modus-themes.nvim" },
+  { "projekt0n/github-nvim-theme" },
   -- Configure LazyVim to load colorscheme
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "modus",
+      colorscheme = "github_dark_default",
     },
   },
 }
