@@ -22,8 +22,26 @@ my $percent;
 my $ac_adapt;
 my $full_text;
 my $short_text;
-my $bat_number = $ENV{BAT_NUMBER} || 0;
 my $label = $ENV{LABEL} || "";
+
+# 1. Dynamically find the first existing battery directory in sysfs
+my @bat_dirs = sort glob("/sys/class/power_supply/BAT*");
+my $sysfs_bat = $bat_dirs[0];
+
+# Exit silently if no battery exists
+if (not defined($sysfs_bat)) {
+    exit(0);
+}
+
+# 2. Extract battery number (e.g., 'BAT1' -> 1) to sync with the acpi command
+my $bat_number = $ENV{BAT_NUMBER};
+if (not defined $bat_number) {
+    if ($sysfs_bat =~ /BAT(\d+)$/) {
+        $bat_number = $1;
+    } else {
+        $bat_number = 0;
+    }
+}
 
 # read the first line of the "acpi" command output
 open (ACPI, "acpi -b 2>/dev/null| grep 'Battery $bat_number' |") or die;
@@ -32,11 +50,10 @@ close(ACPI);
 
 # fail on unexpected output
 if (not defined($acpi)) {
-    # don't print anything to stderr if there is no battery
     exit(0);
 }
 elsif ($acpi !~ /: ([\w\s]+), (\d+)%/) {
-	die "$acpi\n";
+    die "$acpi\n";
 }
 
 $status = $1;
@@ -44,55 +61,49 @@ $percent = $2;
 $full_text = "$label$percent%";
 
 if ($status eq 'Discharging') {
-	$full_text .= ' DIS';
+    $full_text .= ' DIS';
 } elsif ($status eq 'Charging') {
-	$full_text .= ' CHR';
+    $full_text .= ' CHR';
 } elsif ($status eq 'Unknown') {
-	open (AC_ADAPTER, "acpi -a |") or die;
-	$ac_adapt = <AC_ADAPTER>;
-	close(AC_ADAPTER);
+    open (AC_ADAPTER, "acpi -a |") or die;
+    $ac_adapt = <AC_ADAPTER>;
+    close(AC_ADAPTER);
 
-	if ($ac_adapt =~ /: ([\w-]+)/) {
-		$ac_adapt = $1;
+    if ($ac_adapt =~ /: ([\w-]+)/) {
+        $ac_adapt = $1;
 
-		if ($ac_adapt eq 'on-line') {
-			$full_text .= ' CHR';
-		} elsif ($ac_adapt eq 'off-line') {
-			$full_text .= ' DIS';
-		}
-	}
+        if ($ac_adapt eq 'on-line') {
+            $full_text .= ' CHR';
+        } elsif ($ac_adapt eq 'off-line') {
+            $full_text .= ' DIS';
+        }
+    }
 }
 
 my $watts = "";
 
-# Find all battery directories. acpi indexes from 0, but sysfs might use BAT1.
-# Sorting ensures the order matches what acpi likely sees.
-my @bat_dirs = sort glob("/sys/class/power_supply/BAT*");
-my $sysfs_bat = $bat_dirs[$bat_number];
+# 3. Calculate Watts using the exact sysfs path we found earlier
+my $power_now_file = "$sysfs_bat/power_now";
+my $current_now_file = "$sysfs_bat/current_now";
+my $voltage_now_file = "$sysfs_bat/voltage_now";
 
-if (defined $sysfs_bat) {
-    my $power_now_file = "$sysfs_bat/power_now";
-    my $current_now_file = "$sysfs_bat/current_now";
-    my $voltage_now_file = "$sysfs_bat/voltage_now";
-
-    if (open(my $fh, '<', $power_now_file)) {
-        my $micro_watts = <$fh>;
-        close($fh);
-        chomp($micro_watts);
-        if (defined $micro_watts && $micro_watts =~ /^\d+$/ && $micro_watts > 0) {
-            $watts = sprintf("%.1f W", $micro_watts / 1000000);
-        }
-    } elsif (open(my $fh_c, '<', $current_now_file) && open(my $fh_v, '<', $voltage_now_file)) {
-        my $micro_amps = <$fh_c>;
-        my $micro_volts = <$fh_v>;
-        close($fh_c);
-        close($fh_v);
-        chomp($micro_amps);
-        chomp($micro_volts);
-        if (defined $micro_amps && $micro_amps =~ /^\d+$/ && defined $micro_volts && $micro_volts =~ /^\d+$/) {
-            # P = V * I (microAmps * microVolts / 10^12 = Watts)
-            $watts = sprintf("%.1f W", ($micro_amps * $micro_volts) / 1000000000000);
-        }
+if (open(my $fh, '<', $power_now_file)) {
+    my $micro_watts = <$fh>;
+    close($fh);
+    chomp($micro_watts);
+    if (defined $micro_watts && $micro_watts =~ /^\d+$/ && $micro_watts > 0) {
+        $watts = sprintf("%.1f W", $micro_watts / 1000000);
+    }
+} elsif (open(my $fh_c, '<', $current_now_file) && open(my $fh_v, '<', $voltage_now_file)) {
+    my $micro_amps = <$fh_c>;
+    my $micro_volts = <$fh_v>;
+    close($fh_c);
+    close($fh_v);
+    chomp($micro_amps);
+    chomp($micro_volts);
+    if (defined $micro_amps && $micro_amps =~ /^\d+$/ && defined $micro_volts && $micro_volts =~ /^\d+$/) {
+        # P = V * I (microAmps * microVolts / 10^12 = Watts)
+        $watts = sprintf("%.1f W", ($micro_amps * $micro_volts) / 1000000000000);
     }
 }
 
@@ -103,7 +114,7 @@ if ($watts ne "") {
 $short_text = $full_text;
 
 if ($acpi =~ /(\d\d:\d\d):/) {
-	$full_text .= " ($1)";
+    $full_text .= " ($1)";
 }
 
 # print text
@@ -113,19 +124,19 @@ print "$short_text\n";
 # consider color and urgent flag only on discharge
 if ($status eq 'Discharging') {
 
-	if ($percent < 20) {
-		print "#FF0000\n";
-	} elsif ($percent < 40) {
-		print "#FFAE00\n";
-	} elsif ($percent < 60) {
-		print "#FFF600\n";
-	} elsif ($percent < 85) {
-		print "#A8FF00\n";
-	}
+    if ($percent < 20) {
+        print "#FF0000\n";
+    } elsif ($percent < 40) {
+        print "#FFAE00\n";
+    } elsif ($percent < 60) {
+        print "#FFF600\n";
+    } elsif ($percent < 85) {
+        print "#A8FF00\n";
+    }
 
-	if ($percent < 5) {
-		exit(33);
-	}
+    if ($percent < 5) {
+        exit(33);
+    }
 }
 
 exit(0);
