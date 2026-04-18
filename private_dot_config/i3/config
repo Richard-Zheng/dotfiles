@@ -231,5 +231,5 @@ bindsym $mod+Shift+p exec \
         jq 'recurse(.nodes[]) | select(.focused).window' \
     ) png:- | \
     xclip -selection clipboard -t image/png
-bindsym Print exec --no-startup-id maim --select | xclip -selection clipboard -t image/png
+bindsym Print exec --no-startup-id flameshot gui
 bindsym $mod+p exec --no-startup-id autorandr --cycle
