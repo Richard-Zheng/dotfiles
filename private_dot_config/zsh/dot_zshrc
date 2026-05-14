@@ -168,4 +168,38 @@ setopt noflowcontrol; stty -ixon
 # Usage: dpi <number>
 function dpi() {
     sed -i -E s/Xft.dpi:.\*/Xft.dpi:$1/ ~/.Xresources && xrdb ~/.Xresources && i3-msg restart
+
+    DPI=$1
+    VAL=$((DPI * 1024))
+    xrandr --dpi "$DPI"
+    mkdir -p ~/.config/xsettingsd
+    cat > ~/.config/xsettingsd/xsettingsd.conf <<EOF
+Xft/Antialias   1
+Xft/Hinting     1
+Xft/HintStyle   "hintfull"
+Xft/lcdfilter   "lcddefault"
+Xft/RGBA        "rgb"
+
+Xft/DPI $VAL
+Gdk/UnscaledDPI $VAL
+Gdk/WindowScalingFactor 1
+Gtk/EnableAnimations 1
+Gtk/DecorationLayout "icon:minimize,maximize,close"
+Net/ThemeName "Breeze"
+Gtk/PrimaryButtonWarpsSlider 1
+Gtk/ToolbarStyle 3
+Gtk/MenuImages 1
+Gtk/ButtonImages 1
+Net/CursorBlinkTime 1000
+Net/CursorBlink 1
+Gtk/CursorThemeSize 24
+Gtk/CursorThemeName "breeze_cursors"
+Net/SoundThemeName "ocean"
+Net/IconThemeName "breeze"
+Gtk/FontName "Sans Serif,  10"
+EOF
+    pkill -HUP xsettingsd 2>/dev/null || {
+        pkill xsettingsd 2>/dev/null
+        xsettingsd >/dev/null 2>&1 &
+    }
 }
