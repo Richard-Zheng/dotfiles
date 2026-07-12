@@ -19,8 +19,8 @@ if [[ -n $SSH_CONNECTION ]]; then
   # 1. Color Hashing Function
   # Calculates a color code (1-255) based on the string "user@host"
   function get_identity_color() {
-    local str="%n@%m"
-    local seed=$(echo -n ${(S)str//\%/%%} | cksum | cut -d' ' -f1)
+    local identity="${(%):-%n@%m}"
+    local seed=$(print -rn -- "$identity" | cksum | cut -d' ' -f1)
     # Map to 256-color palette (avoiding very dark colors 0-16 and 232-255)
     echo $(( (seed % 180) + 20 ))
   }
