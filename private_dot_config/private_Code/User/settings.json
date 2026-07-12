@@ -1,7 +1,8 @@
 {
+  "git.addAICoAuthor": "off",
   "window.restoreWindows": "none",
   "explorer.confirmDelete": false,
-  "window.openFoldersInNewWindow": "on",
+  "window.openFoldersInNewWindow": "off",
   "code-runner.runInTerminal": true,
   "workbench.editor.enablePreview": true,
   "security.workspace.trust.untrustedFiles": "open",
@@ -1251,7 +1252,7 @@
 
   "workbench.colorTheme": "Default Dark+",
   "editor.cursorBlinking": "solid",
-  "editor.fontFamily": "'Iosevka Fixed Medium', 'monospace', monospace",
+  "editor.fontFamily": "'Iosevka Nerd Font', 'monospace', monospace",
   "makefile.configureOnOpen": true,
   "liveServer.settings.donotShowInfoMsg": true,
   "editor.lineNumbers": "relative",
