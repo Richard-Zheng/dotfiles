@@ -5,21 +5,19 @@
 #
 # Licensed under the terms of the GNU GPL v3, or any later version.
 #
-# This script is meant to use with i3blocks. It parses the output of the "acpi"
-# command (often provided by a package of the same name) to read the status of
-# the battery, and eventually its remaining time (to full charge or discharge).
+# This script is meant to use with i3blocks. It reads the battery status,
+# charge percentage, and power draw from sysfs (/sys/class/power_supply/BAT*),
+# and optionally the remaining time from the "acpi" command.
 #
 # The color will gradually change for a percentage below 85%, and the urgency
-# (exit code 33) is set if there is less that 5% remaining.
+# (exit code 33) is set if there is less than 5% remaining.
 
 use strict;
 use warnings;
 use utf8;
 
-my $acpi;
 my $status;
 my $percent;
-my $ac_adapt;
 my $full_text;
 my $short_text;
 my $label = $ENV{LABEL} || "";
@@ -33,31 +31,25 @@ if (not defined($sysfs_bat)) {
     exit(0);
 }
 
-# 2. Extract battery number (e.g., 'BAT1' -> 1) to sync with the acpi command
-my $bat_number = $ENV{BAT_NUMBER};
-if (not defined $bat_number) {
-    if ($sysfs_bat =~ /BAT(\d+)$/) {
-        $bat_number = $1;
-    } else {
-        $bat_number = 0;
-    }
-}
+# 2. Read status and charge percentage from sysfs. This is authoritative and
+#    avoids the numbering mismatch between sysfs (BAT1) and the "acpi" tool
+#    ("Battery 0").
+open(my $status_fh, '<', "$sysfs_bat/status") or exit(0);
+$status = <$status_fh>;
+close($status_fh);
+chomp($status);
 
-# read the first line of the "acpi" command output
-open (ACPI, "acpi -b 2>/dev/null| grep 'Battery $bat_number' |") or die;
-$acpi = <ACPI>;
-close(ACPI);
+open(my $cap_fh, '<', "$sysfs_bat/capacity") or exit(0);
+$percent = <$cap_fh>;
+close($cap_fh);
+chomp($percent);
 
 # fail on unexpected output
-if (not defined($acpi)) {
+if (not defined($status) or $status !~ /^\S/ or
+    not defined($percent) or $percent !~ /^\d+$/) {
     exit(0);
 }
-elsif ($acpi !~ /: ([\w\s]+), (\d+)%/) {
-    die "$acpi\n";
-}
 
-$status = $1;
-$percent = $2;
 $full_text = "$label$percent%";
 
 if ($status eq 'Discharging') {
@@ -65,17 +57,19 @@ if ($status eq 'Discharging') {
 } elsif ($status eq 'Charging') {
     $full_text .= ' CHR';
 } elsif ($status eq 'Unknown') {
-    open (AC_ADAPTER, "acpi -a |") or die;
-    $ac_adapt = <AC_ADAPTER>;
-    close(AC_ADAPTER);
+    # Fall back to the AC adapter state to decide between charge/discharge.
+    if (open(my $adapter_fh, '-|', 'acpi', '-a')) {
+        my $ac_adapt = <$adapter_fh>;
+        close($adapter_fh);
 
-    if ($ac_adapt =~ /: ([\w-]+)/) {
-        $ac_adapt = $1;
+        if (defined $ac_adapt and $ac_adapt =~ /: ([\w-]+)/) {
+            my $state = $1;
 
-        if ($ac_adapt eq 'on-line') {
-            $full_text .= ' CHR';
-        } elsif ($ac_adapt eq 'off-line') {
-            $full_text .= ' DIS';
+            if ($state eq 'on-line') {
+                $full_text .= ' CHR';
+            } elsif ($state eq 'off-line') {
+                $full_text .= ' DIS';
+            }
         }
     }
 }
@@ -113,8 +107,14 @@ if ($watts ne "") {
 
 $short_text = $full_text;
 
-if ($acpi =~ /(\d\d:\d\d):/) {
-    $full_text .= " ($1)";
+# 4. Optionally append the remaining-time estimate from the "acpi" tool.
+#    This is purely cosmetic; ignore it if acpi is missing or fails.
+if (open(my $acpi_fh, '-|', 'acpi', '-b')) {
+    my $acpi_line = <$acpi_fh>;
+    close($acpi_fh);
+    if (defined $acpi_line and $acpi_line =~ /(\d\d:\d\d):/) {
+        $full_text .= " ($1)";
+    }
 }
 
 # print text

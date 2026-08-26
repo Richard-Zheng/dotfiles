@@ -100,7 +100,7 @@ markup=pango
 interval=10
 T_WARN=70
 T_CRIT=90
-SENSOR_CHIP={{ if eq .chezmoi.hostname "tcarch" }}"coretemp-isa-0000"{{ else }}"acpitz-acpi-0"{{ end }}
+SENSOR_CHIP={{ if eq .chezmoi.hostname "tcarch" }}"coretemp-isa-0000"{{ else }}"acpitz_0-acpi-0"{{ end }}
 
 [power-profiles-daemon]
 label=<span color="#EE37B8">PPD</span>
