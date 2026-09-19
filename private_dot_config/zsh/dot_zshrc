@@ -119,6 +119,7 @@ echo 'set -g default-terminal \$ZSH_TMUX_TERM' > ./tmux.only.conf" \
 zinit snippet PZT::modules/pacman/init.zsh
 
 # Env
+export PATH="$HOME/.local/bin:$PATH"
 export EDITOR=nvim
 # For ICS PA
 [[ -d ~/ics2024 ]] && {
