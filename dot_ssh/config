@@ -1,4 +1,14 @@
+Host 172.31.233.17
+  HostName 172.31.233.17
+  Port 12223
+  User frain
+
 Host github.com
-  Hostname ssh.github.com
+  HostName ssh.github.com
   Port 443
   User git
+
+Host wchar.top
+  Hostname 47.112.197.82
+  Port 23333
+  User root
