@@ -5,17 +5,17 @@ embedding the remote script in an `ssh` command-line argument.
 
 Usage:
 
-    ssh-run [SSH_OPTIONS...] destination <<'EOF'
+    ssh-run destination [SSH_OPTIONS...] <<'EOF'
     remote commands...
     EOF
 
 SSH options are passed through directly to `ssh`, so options such as
 `-p`, `-i`, `-J`, `-4`, and `-o ...` may be used when necessary.
 
-`ssh-run` injects `-F /home/frain/.ssh/config` and 
-`-o BatchMode=yes` by default.
+`ssh-run` injects `-F /home/frain/.ssh/config` and `-o BatchMode=yes` by default.
+You don't need to write out these two, but you can override them when needed.
 
-Do not put substantial remote shell scripts directly in an SSH
+Do not put substantial remote shell scripts directly in an `ssh`
 command argument like:
 
     ssh HOST 'command1; command2; ...'
