@@ -22,7 +22,7 @@ args = [
 
 [mcp_servers.aliyun_dns]
 command = "uv"
-args = ["run", "/home/frain/alidns_mcp.py"]
+args = ["run", "{{ .chezmoi.homeDir }}/.local/share/mcp/aliyun-dns-mcp/alidns_mcp.py"]
 env_vars = [
   "ALIBABA_CLOUD_ACCESS_KEY_ID",
   "ALIBABA_CLOUD_ACCESS_KEY_SECRET",

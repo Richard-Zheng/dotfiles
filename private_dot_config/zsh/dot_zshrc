@@ -118,8 +118,22 @@ echo 'set -g default-terminal \$ZSH_TMUX_TERM' > ./tmux.only.conf" \
 
 zinit snippet PZT::modules/pacman/init.zsh
 
-# Env
+# PATH
+# Add Yarn global binaries to PATH if Yarn is installed
+if command -v yarn >/dev/null 2>&1; then
+    export PATH="$(yarn global bin):$PATH"
+fi
+# Add pnpm to PATH only if pnpm command exists
+if (( $+commands[pnpm] )); then
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+  case ":$PATH:" in
+    *":$PNPM_HOME/bin:"*) ;;
+    *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+  esac
+fi
 export PATH="$HOME/.local/bin:$PATH"
+
+# Env
 export EDITOR=nvim
 # For ICS PA
 [[ -d ~/ics2024 ]] && {
