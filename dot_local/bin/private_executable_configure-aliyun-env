@@ -1,0 +1,72 @@
+#!/bin/sh
+set -eu
+
+codex_home=${CODEX_HOME:-"$HOME/.codex"}
+secrets_dir="$codex_home/secrets"
+env_file=${CODEX_ALIYUN_ENV_FILE:-"$secrets_dir/aliyun.env"}
+tmp_file=
+
+if [ -e "$env_file" ] && [ "${1:-}" != "--force" ]; then
+  echo "$env_file already exists." >&2
+  echo "Run $0 --force to replace it." >&2
+  exit 73
+fi
+
+restore_tty() {
+  stty echo 2>/dev/null || true
+}
+
+cleanup() {
+  restore_tty
+  if [ -n "${tmp_file:-}" ]; then
+    rm -f -- "$tmp_file"
+  fi
+}
+
+read_secret() {
+  prompt=$1
+
+  printf '%s' "$prompt" >&2
+  stty -echo
+  IFS= read -r secret_value
+  stty echo
+  printf '\n' >&2
+
+  if [ -z "$secret_value" ]; then
+    echo "The value cannot be empty." >&2
+    exit 65
+  fi
+
+}
+
+shell_quote() {
+  printf "'"
+  printf '%s' "$1" | sed "s/'/'\\\\''/g"
+  printf "'"
+}
+
+trap cleanup EXIT HUP INT TERM
+read_secret "Aliyun AccessKey ID: "
+access_key_id=$secret_value
+read_secret "Aliyun AccessKey Secret: "
+access_key_secret=$secret_value
+
+umask 077
+mkdir -p -- "$secrets_dir"
+chmod 700 -- "$secrets_dir"
+tmp_file="$env_file.tmp.$$"
+
+{
+  printf 'ALIBABA_CLOUD_ACCESS_KEY_ID='
+  shell_quote "$access_key_id"
+  printf '\nALIBABA_CLOUD_ACCESS_KEY_SECRET='
+  shell_quote "$access_key_secret"
+  printf '\n'
+} > "$tmp_file"
+
+chmod 600 -- "$tmp_file"
+mv -f -- "$tmp_file" "$env_file"
+tmp_file=
+unset access_key_id access_key_secret secret_value
+
+echo "Saved Aliyun environment variables to $env_file (mode 600)." >&2

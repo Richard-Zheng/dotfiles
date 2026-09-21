@@ -1,0 +1,37 @@
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
+[tui.model_availability_nux]
+gpt-6-astra = 4
+
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = [
+  "-y",
+  "chrome-devtools-mcp@latest",
+  "--browser-url=http://localhost:9222"
+  #"--executablePath",
+  #"/usr/bin/chromium",
+  #"--headless=false"
+]
+
+#env_vars = ["DISPLAY", "XAUTHORITY"]
+#startup_timeout_sec = 30
+
+[mcp_servers.aliyun_dns]
+command = "uv"
+args = ["run", "/home/frain/alidns_mcp.py"]
+env_vars = [
+  "ALIBABA_CLOUD_ACCESS_KEY_ID",
+  "ALIBABA_CLOUD_ACCESS_KEY_SECRET",
+]
+
+[mcp_servers.esa-site]
+command = "npx"
+args = ["-y", "-p", "mcp-server-esa", "mcp-server-esa-site"]
+env_vars = [
+  "ALIBABA_CLOUD_ACCESS_KEY_ID",
+  "ALIBABA_CLOUD_ACCESS_KEY_SECRET",
+]

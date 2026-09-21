@@ -1,0 +1,29 @@
+#!/bin/sh
+set -eu
+
+codex_bin=${CODEX_REAL_BIN:-/usr/bin/codex}
+codex_home=${CODEX_HOME:-"$HOME/.codex"}
+env_file=${CODEX_ALIYUN_ENV_FILE:-"$codex_home/secrets/aliyun.env"}
+
+if [ ! -x "$codex_bin" ]; then
+  echo "Codex executable not found at $codex_bin." >&2
+  echo "Set CODEX_REAL_BIN to the real Codex executable." >&2
+  exit 69
+fi
+
+if [ ! -r "$env_file" ]; then
+  echo "Aliyun environment file not found: $env_file" >&2
+  echo "Run configure-aliyun-env first." >&2
+  exit 78
+fi
+
+set -a
+# This file is user-owned (mode 600) and contains shell assignments only.
+# shellcheck disable=SC1090
+. "$env_file"
+set +a
+
+: "${ALIBABA_CLOUD_ACCESS_KEY_ID:?Missing ALIBABA_CLOUD_ACCESS_KEY_ID in $env_file}"
+: "${ALIBABA_CLOUD_ACCESS_KEY_SECRET:?Missing ALIBABA_CLOUD_ACCESS_KEY_SECRET in $env_file}"
+
+exec "$codex_bin" "$@"
