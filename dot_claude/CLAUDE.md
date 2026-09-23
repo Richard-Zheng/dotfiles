@@ -1,19 +1,16 @@
 ## SSH / remote command execution
 
-For non-interactive remote shell commands, prefer `ssh-run` instead of
-embedding the remote script in an `ssh` command-line argument.
+For non-interactive remote shell commands, use:
 
-Usage:
-
-    ssh-run destination [SSH_OPTIONS...] <<'EOF'
+    ssh -o BatchMode=yes -o ConnectTimeout=10 HOST 'bash -se' <<'EOF'
     remote commands...
     EOF
 
-SSH options are passed through directly to `ssh`, so options such as
-`-p`, `-i`, `-J`, `-4`, and `-o ...` may be used when necessary.
-
-`ssh-run` injects `-F /home/frain/.ssh/config` and `-o BatchMode=yes` by default.
-You don't need to write out these two, but you can override them when needed.
+`BatchMode=yes` fails fast instead of hanging on an auth prompt;
+`ConnectTimeout=10` bounds the connection. Use a quoted heredoc (`<<'EOF'`)
+so the local shell does not expand variables, and `bash -se` so the remote
+script stops on the first failing command. The delimiter can be something
+other than `EOF` when needed.
 
 Do not put substantial remote shell scripts directly in an `ssh`
 command argument like:
