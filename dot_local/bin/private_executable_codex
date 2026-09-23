@@ -2,8 +2,7 @@
 set -eu
 
 codex_bin=${CODEX_REAL_BIN:-/usr/bin/codex}
-codex_home=${CODEX_HOME:-"$HOME/.codex"}
-env_file=${CODEX_ALIYUN_ENV_FILE:-"$codex_home/secrets/aliyun.env"}
+env_file=${ALIYUN_ENV_FILE:-"$HOME/.config/secrets/aliyun.env"}
 
 if [ ! -x "$codex_bin" ]; then
   echo "Codex executable not found at $codex_bin." >&2

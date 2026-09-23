@@ -19,3 +19,10 @@ command argument like:
 
 Use plain `ssh` when you specifically need SSH features such as
 interactive sessions, tunneling, port forwarding, or `-N`.
+
+## Alibaba Cloud DNS
+
+Use the `aliyun-dns` command for Alibaba Cloud DNS instead of an MCP server.
+Run `aliyun-dns --help` (and subcommand `--help`) when needed. Agents should
+pass `--json` for structured output and inspect the current records before
+making changes.

@@ -20,14 +20,6 @@ args = [
 #env_vars = ["DISPLAY", "XAUTHORITY"]
 #startup_timeout_sec = 30
 
-[mcp_servers.aliyun_dns]
-command = "uv"
-args = ["run", "{{ .chezmoi.homeDir }}/.local/share/mcp/aliyun-dns-mcp/alidns_mcp.py"]
-env_vars = [
-  "ALIBABA_CLOUD_ACCESS_KEY_ID",
-  "ALIBABA_CLOUD_ACCESS_KEY_SECRET",
-]
-
 [mcp_servers.esa-site]
 command = "npx"
 args = ["-y", "-p", "mcp-server-esa", "mcp-server-esa-site"]
