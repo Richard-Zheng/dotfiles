@@ -1,0 +1,7 @@
+{
+  "lastChangelogVersion": "0.86.1",
+  "theme": "dark",
+  "defaultProvider": "newapi",
+  "defaultModel": "deepseek-v4.1-flash",
+  "defaultThinkingLevel": "high"
+}
