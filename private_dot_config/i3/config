@@ -11,6 +11,10 @@
 
 set $mod Mod4
 
+# 机器专属配置（显示器布局等）由 chezmoi 按 hostname 生成到 conf.d/
+# 笔记本上该目录为空，include 会自动跳过不存在的文件
+include ~/.config/i3/conf.d/*.conf
+
 bindsym $mod+Shift+g mode "gaming"
 mode "gaming" {
   bindsym $mod+Shift+g mode "default"
@@ -238,4 +242,5 @@ bindsym $mod+Shift+p exec \
     ) png:- | \
     xclip -selection clipboard -t image/png
 bindsym Print exec --no-startup-id flameshot gui
-bindsym $mod+p exec --no-startup-id autorandr --cycle
+
+# 显示器布局相关的快捷键见 conf.d/monitors.conf（机器专属）

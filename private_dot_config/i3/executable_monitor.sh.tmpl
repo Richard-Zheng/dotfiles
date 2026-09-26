@@ -1,0 +1,45 @@
+{{- /* 机器专属的显示器切换脚本（直接用 xrandr）。
+   仅在对应 hostname 上生成有效内容；其它机器生成空脚本（不会被 i3 引用）。 */ -}}
+{{- if eq .chezmoi.hostname "vccarch" -}}
+#!/bin/sh
+# monitor.sh [dual|hdmi|dp]
+#
+# 直接用 xrandr 控制显示器布局（不依赖 autorandr）。
+#   dual  双屏：HDMI-1(左,主) + DP-1(右)
+#   hdmi  仅 HDMI-1
+#   dp    仅 DP-1
+#
+# 说明：HDMI-1 锁 4K30（该口 4K60 会因带宽不足降级 4:2:0 而偏色），
+#       DP-1 走 4K60。
+
+HDMI=HDMI-1
+DP=DP-1
+RES=3840x2160
+HDMI_RATE=30.00
+DP_RATE=60.00
+
+apply_dual() {
+    xrandr --output "$HDMI" --mode "$RES" --rate "$HDMI_RATE" --pos 0x0 --primary \
+           --output "$DP"   --mode "$RES" --rate "$DP_RATE"   --pos 3840x0
+}
+
+apply_hdmi() {
+    xrandr --output "$DP"   --off \
+           --output "$HDMI" --mode "$RES" --rate "$HDMI_RATE" --pos 0x0 --primary
+}
+
+apply_dp() {
+    xrandr --output "$HDMI" --off \
+           --output "$DP"   --mode "$RES" --rate "$DP_RATE" --pos 0x0 --primary
+}
+
+case "${1:-}" in
+    dual) apply_dual ;;
+    hdmi) apply_hdmi ;;
+    dp)   apply_dp ;;
+    *)
+        echo "usage: $(basename "$0") [dual|hdmi|dp]" >&2
+        exit 1
+        ;;
+esac
+{{- end }}

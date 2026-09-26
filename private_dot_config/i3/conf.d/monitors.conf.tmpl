@@ -1,0 +1,11 @@
+{{- /* 机器专属的 i3 显示器配置。
+   由 chezmoi 按 hostname 生成；未匹配的机器生成空文件，i3 include 无副作用。 */ -}}
+{{- if eq .chezmoi.hostname "vccarch" -}}
+# 显示器布局切换（台式机 vccarch：HDMI-1 + DP-1）
+# $mod+Ctrl+p    双屏 HDMI-1 + DP-1
+# $mod+Ctrl+h    仅 HDMI-1
+# $mod+Ctrl+l    仅 DP-1
+bindsym $mod+Ctrl+p exec --no-startup-id ~/.config/i3/monitor.sh dual
+bindsym $mod+Ctrl+h exec --no-startup-id ~/.config/i3/monitor.sh hdmi
+bindsym $mod+Ctrl+l exec --no-startup-id ~/.config/i3/monitor.sh dp
+{{- end }}
