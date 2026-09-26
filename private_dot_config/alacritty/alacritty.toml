@@ -2,6 +2,6 @@
 TERM = "xterm-256color"
 
 [terminal.shell]
-program = "zsh"
-args = ["-l", "-c", "tmux attach || tmux"]
+program = "/bin/bash"
+args = ["-c", "~/.config/ghostty/autoload-tmux.sh"]
 
