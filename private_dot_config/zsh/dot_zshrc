@@ -109,12 +109,7 @@ zinit ice as"command" from"gh-r" bpick"*atuin-${atuin_os}*" mv"atuin*/atuin -> a
     atpull"%atclone" src"init.zsh"
 zinit light atuinsh/atuin
 
-ZSH_TMUX_AUTOSTART=false
-zinit lucid light-mode for \
-  atclone"echo 'set -g default-terminal \$ZSH_TMUX_TERM
-source-file \$ZSH_TMUX_CONFIG' > ./tmux.extra.conf
-echo 'set -g default-terminal \$ZSH_TMUX_TERM' > ./tmux.only.conf" \
-    OMZP::tmux
+[[ ! -f $_zdir/tmux.zsh ]] || source $_zdir/tmux.zsh
 
 zinit snippet PZT::modules/pacman/init.zsh
 
@@ -135,12 +130,9 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Env
 export EDITOR=nvim
-# For ICS PA
-[[ -d ~/ics2024 ]] && {
-    export NEMU_HOME=$HOME/ics2024/nemu
-    export AM_HOME=$HOME/ics2024/abstract-machine
-    export NAVY_HOME=$HOME/ics2024/navy-apps
-}
+[[ ! -f $_zdir/aliases.zsh ]] || source $_zdir/aliases.zsh
+[[ ! -f $_zdir/icspa.zsh ]] || source $_zdir/icspa.zsh
+[[ ! -f $_zdir/jyyos.zsh ]] || source $_zdir/jyyos.zsh
 
 # History file
 HISTFILE=~/.zsh_history
