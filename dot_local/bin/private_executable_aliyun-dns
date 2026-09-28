@@ -56,7 +56,7 @@ def load_credentials() -> tuple[str, str]:
     if not access_key_id or not access_key_secret:
         raise RuntimeError(
             "Aliyun credentials are missing. Set ALIBABA_CLOUD_ACCESS_KEY_ID and "
-            "ALIBABA_CLOUD_ACCESS_KEY_SECRET, or run configure-aliyun-env."
+            f"ALIBABA_CLOUD_ACCESS_KEY_SECRET, or create {ENV_FILE}."
         )
     return access_key_id, access_key_secret
 

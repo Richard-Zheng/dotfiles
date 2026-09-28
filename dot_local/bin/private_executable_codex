@@ -12,7 +12,7 @@ fi
 
 if [ ! -r "$env_file" ]; then
   echo "Aliyun environment file not found: $env_file" >&2
-  echo "Run configure-aliyun-env first." >&2
+  echo "Create it with the two ALIBABA_CLOUD_* variables (mode 600)." >&2
   exit 78
 fi
 
