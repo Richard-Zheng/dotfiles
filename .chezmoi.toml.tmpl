@@ -1,5 +1,23 @@
-{{- $is_server := promptBoolOnce . "is_server" "Is this a headless server" -}}
+{{- $types := list "desktop" "laptop" "headless" -}}
+{{- /* Keep old installations safe while migrating from is_server. */ -}}
+{{- $defaultType := "desktop" -}}
+{{- if and (hasKey . "is_server") .is_server -}}
+{{-   $defaultType = "headless" -}}
+{{- end -}}
+{{- $type := promptChoiceOnce . "type" "Machine type" $types $defaultType -}}
+{{- if not (has $type $types) -}}
+{{-   fail (printf "invalid machine type %q (expected desktop, laptop, or headless)" $type) -}}
+{{- end -}}
+{{- $isHeadless := promptBoolOnce . "is_headless" "Run without a graphical desktop" (eq $type "headless") -}}
+{{- $enableSnapper := promptBoolOnce . "enable_snapper" "Enable Snapper configuration" false -}}
+
+encryption = "age"
+
+[age]
+    identity = "~/.config/chezmoi/key.txt"
+    recipient = "age1lqezkj7ahmlpshcu7csna8zya0hwktrxs7q50f4djhup2n64zawqtr96fh"
 
 [data]
-    is_server = {{ $is_server }}
-    enable_snapper = false
+    type = {{ $type | quote }}
+    is_headless = {{ $isHeadless }}
+    enable_snapper = {{ $enableSnapper }}

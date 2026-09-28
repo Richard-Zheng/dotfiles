@@ -1,24 +1,67 @@
-{{- if .is_server }}
+{{- /* Fall back to is_server until an existing machine runs `chezmoi init`. */ -}}
+{{- $isHeadless := false -}}
+{{- if hasKey . "is_headless" -}}
+{{-   $isHeadless = .is_headless -}}
+{{- else if hasKey . "is_server" -}}
+{{-   $isHeadless = .is_server -}}
+{{- end -}}
+{{- $type := "desktop" -}}
+{{- if hasKey . "type" -}}
+{{-   $type = .type -}}
+{{- else if and (hasKey . "is_server") .is_server -}}
+{{-   $type = "headless" -}}
+{{- end -}}
+{{- $enableSnapper := false -}}
+{{- if hasKey . "enable_snapper" -}}
+{{-   $enableSnapper = .enable_snapper -}}
+{{- end -}}
 
-keyd/
-laptop/
-
-# ls -d private_*/*/ | sed -E 's|^private_dot_|.|; s|private_||'
-# ls -p private_dot_config | grep -v / | sed 's|^|.config/|'
-# then delete what should not be ignored
-
+{{- if $isHeadless }}
+# Graphical desktop configuration
 .config/alacritty/
+.config/chromium-flags.conf
 .config/dunst/
+.config/flameshot/
 .config/fontconfig/
+.config/ghostty/
 .config/i3/
 .config/i3blocks/
 .config/i3status/
 .config/Code/
 .config/fcitx5/
 .config/rofi/
-.config/snapper/
 .config/mimeapps.list
+{{- end }}
 
+{{- if eq $type "headless" }}
+# Physical workstation configuration
+keyd/
+{{- end }}
+
+{{- if ne $type "laptop" }}
+# Laptop-only install scripts
+laptop/
+{{- end }}
+
+{{- if $enableSnapper }}
+# These are inputs for configure-snapper.sh, not files under ~/.config.
+.config/snapper/home
+.config/snapper/root
+{{- else }}
+.config/snapper/
+{{- end }}
+
+# Keep i3blocks license and reproducible C sources in Git, not in ~/.config.
+.config/i3blocks/LICENSE.md
+.config/i3blocks/README.md
+.config/i3blocks/bandwidth2/Makefile
+.config/i3blocks/bandwidth2/bandwidth2.c
+.config/i3blocks/cpu_usage2/Makefile
+.config/i3blocks/cpu_usage2/cpu_usage2.c
+
+{{- if ne $type "laptop" }}
+.config/i3blocks/battery/
+.config/i3blocks/power-profiles-daemon/
 {{- end }}
 
 .DS_Store

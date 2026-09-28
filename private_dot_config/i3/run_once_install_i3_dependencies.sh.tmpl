@@ -16,7 +16,6 @@ PACKAGES=(
   pasystray
   pipewire-pulse
   playerctl
-  brightnessctl
   ghostty
   rofi
   i3blocks acpi lm_sensors sysstat bc alsa-utils
@@ -30,10 +29,6 @@ PACKAGES=(
   xorg-xinput
   sddm
   kwallet
-
-  # Laptop
-  powertop
-  power-profiles-daemon
 
   # Utilities
   lxappearance
@@ -76,6 +71,5 @@ fi
 
 sudo systemctl enable sddm
 sudo systemctl enable NetworkManager
-sudo systemctl enable --now power-profiles-daemon.service
 
 {{ end -}}

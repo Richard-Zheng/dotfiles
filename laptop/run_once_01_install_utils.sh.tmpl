@@ -5,7 +5,10 @@
 set -e
 
 PACKAGES=(
-  cpupower power-profiles-daemon
+  brightnessctl
+  cpupower
+  powertop
+  power-profiles-daemon
 
   # System utilities
   btrfs-progs
@@ -13,5 +16,6 @@ PACKAGES=(
 
 # Batch install all packages
 sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+sudo systemctl enable --now power-profiles-daemon.service
 
 {{ end -}}
