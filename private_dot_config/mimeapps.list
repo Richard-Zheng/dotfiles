@@ -221,3 +221,4 @@ image/vnd.microsoft.icon=org.nomacs.ImageLounge.desktop
 image/jpeg=org.nomacs.ImageLounge.desktop
 image/jxl=org.nomacs.ImageLounge.desktop
 image/webp=org.nomacs.ImageLounge.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
