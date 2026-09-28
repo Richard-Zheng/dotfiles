@@ -1,0 +1,41 @@
+{{ if eq .chezmoi.osRelease.id "arch" -}}
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# uv is required at runtime by dot_local/bin/private_executable_aliyun-dns
+# (its shebang is `#!/usr/bin/env -S uv run --script`). That script is deployed
+# to every host, including headless servers, so install uv here at the top level
+# instead of under laptop/, which .chezmoiignore excludes on servers.
+
+PACKAGES=(
+  uv
+)
+
+# Batch install all packages
+sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+
+{{ else -}}
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# See the note in the Arch branch above for why uv is installed here.
+
+if command -v uv >/dev/null 2>&1; then
+  echo "uv is already installed: $(uv --version)"
+  exit 0
+fi
+
+# Install into ~/.local/bin, which is already on PATH, and leave shell startup
+# files untouched so chezmoi remains the single source of truth for dotfiles.
+export UV_INSTALL_DIR="$HOME/.local/bin"
+export UV_NO_MODIFY_PATH=1
+
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+"$HOME/.local/bin/uv" --version
+
+{{ end -}}
