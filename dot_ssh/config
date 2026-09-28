@@ -12,3 +12,8 @@ Host wchar.top
   Hostname 47.112.197.82
   Port 23333
   User root
+
+Host bwg
+  Hostname 67.216.205.151
+  Port 29615
+  User root
