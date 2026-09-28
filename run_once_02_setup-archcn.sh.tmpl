@@ -1,15 +1,14 @@
 {{ if eq .chezmoi.osRelease.id "arch" -}}
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+set -euo pipefail
 
 echo "======================================================="
 echo "Configuring Arch Linux CN repository..."
 echo "======================================================="
 
-# Check if archlinuxcn is already present in pacman.conf
-if ! grep -q "\[archlinuxcn\]" /etc/pacman.conf; then
+# Check for an active archlinuxcn section, ignoring commented examples.
+if ! grep -Eq '^[[:space:]]*\[archlinuxcn\][[:space:]]*$' /etc/pacman.conf; then
     echo " -> Appending [archlinuxcn] to /etc/pacman.conf..."
     # Add the NJU mirror for archlinuxcn
     cat << EOF | sudo tee -a /etc/pacman.conf
@@ -18,18 +17,16 @@ if ! grep -q "\[archlinuxcn\]" /etc/pacman.conf; then
 Server = https://mirrors.nju.edu.cn/archlinuxcn/\$arch
 EOF
 
-    echo " -> Synchronizing package databases..."
-    # Sync the database first so pacman knows about the keyring package
-    sudo pacman -Sy
-
-    echo " -> Installing archlinuxcn-keyring..."
-    # Install the keyring to trust all packages from the CN repository
-    sudo pacman -S --needed --noconfirm archlinuxcn-keyring
-    
-    echo " -> Arch Linux CN repository configured successfully!"
 else
-    echo " -> Arch Linux CN repository is already configured. Skipping."
+    echo " -> Arch Linux CN repository is already configured."
 fi
+
+echo " -> Upgrading the system and installing archlinuxcn-keyring..."
+# Arch Linux does not support partial upgrades. Refresh databases, perform
+# the full upgrade, and install the repository keyring in one transaction.
+sudo pacman -Syu --needed --noconfirm archlinuxcn-keyring
+
+echo " -> Arch Linux CN repository configured successfully!"
 
 echo "======================================================="
 echo "Arch Linux CN setup completed!"
