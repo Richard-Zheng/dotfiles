@@ -5,6 +5,21 @@ _zdir=${ZDOTDIR:-$HOME}
 # tmux.zsh, ...) can add its own bindings without them being reset.
 bindkey -e
 
+# PATH
+# Add Yarn global binaries to PATH if Yarn is installed
+if command -v yarn >/dev/null 2>&1; then
+    export PATH="$(yarn global bin):$PATH"
+fi
+# Add pnpm to PATH only if pnpm command exists
+if (( $+commands[pnpm] )); then
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+  case ":$PATH:" in
+    *":$PNPM_HOME/bin:"*) ;;
+    *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+  esac
+fi
+export PATH="$HOME/.local/bin:$PATH"
+
 # cache folder for zcompdump
 ZSH_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/"
 if [[ ! -d $ZSH_CACHE ]]; then
@@ -117,21 +132,6 @@ zinit light atuinsh/atuin
 [[ ! -f $_zdir/tmux.zsh ]] || source $_zdir/tmux.zsh
 
 zinit snippet PZT::modules/pacman/init.zsh
-
-# PATH
-# Add Yarn global binaries to PATH if Yarn is installed
-if command -v yarn >/dev/null 2>&1; then
-    export PATH="$(yarn global bin):$PATH"
-fi
-# Add pnpm to PATH only if pnpm command exists
-if (( $+commands[pnpm] )); then
-  export PNPM_HOME="$HOME/.local/share/pnpm"
-  case ":$PATH:" in
-    *":$PNPM_HOME/bin:"*) ;;
-    *) export PATH="$PNPM_HOME/bin:$PATH" ;;
-  esac
-fi
-export PATH="$HOME/.local/bin:$PATH"
 
 # Env
 export EDITOR=nvim
