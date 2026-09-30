@@ -159,3 +159,23 @@ if [[ -n $TMUX && $ZSH_TMUX_AUTOREFRESH == true ]] && command tmux ls >/dev/null
   autoload -Uz add-zsh-hook
   add-zsh-hook preexec _zsh_tmux_refresh_environment
 fi
+
+# Ctrl+F runs tmux-sessionizer, but only when the command line is empty.
+# With anything typed it falls through to the normal emacs binding
+# (forward-char), so completion and regular editing are untouched.
+# The command is looked up at keypress time so that a missing
+# tmux-sessionizer degrades to forward-char instead of erroring.
+function _tmux_sessionizer_widget() {
+  if [[ -z $BUFFER ]] && (( $+commands[tmux-sessionizer] )); then
+    zle -I                      # clear the prompt before fzf takes the tty
+    command tmux-sessionizer
+    zle reset-prompt
+  else
+    zle forward-char
+  fi
+}
+
+if [[ -o interactive ]]; then
+  zle -N _tmux_sessionizer_widget
+  bindkey -M emacs '^F' _tmux_sessionizer_widget
+fi
