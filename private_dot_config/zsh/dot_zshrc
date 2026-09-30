@@ -1,5 +1,10 @@
 # smart zdotdir
 _zdir=${ZDOTDIR:-$HOME}
+
+# Use emacs keybindings. Set early so anything sourced afterwards (plugins,
+# tmux.zsh, ...) can add its own bindings without them being reset.
+bindkey -e
+
 # cache folder for zcompdump
 ZSH_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/"
 if [[ ! -d $ZSH_CACHE ]]; then
@@ -149,7 +154,6 @@ setopt share_history          # share history between shells
 setopt hist_fcntl_lock 2>/dev/null
 
 unsetopt beep
-bindkey -e
 # don't have to spell out cd
 setopt autocd
 # cd dir stack
