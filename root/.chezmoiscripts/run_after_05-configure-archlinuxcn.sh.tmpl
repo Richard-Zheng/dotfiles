@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# archlinuxcn ships uv and other tools used by these dotfiles. It has no
+# drop-in directory, so pacman.conf must be edited; keep the edit idempotent.
+if ! type -P pacman >/dev/null 2>&1; then
+  exit 0
+fi
+
+if ! grep -Eq '^[[:space:]]*\[archlinuxcn\][[:space:]]*$' /etc/pacman.conf; then
+  log_task "Adding the [archlinuxcn] repository to /etc/pacman.conf"
+  cat <<'EOF' | c sudo tee -a /etc/pacman.conf >/dev/null
+
+[archlinuxcn]
+Server = https://mirrors.sustech.edu.cn/archlinuxcn/$arch
+EOF
+fi
+
+if ! package_is_installed archlinuxcn-keyring; then
+  log_task "Installing archlinuxcn-keyring (full upgrade required by Arch)"
+  # Arch does not support partial upgrades: refresh databases and install the
+  # keyring in a single transaction.
+  c sudo pacman -Syu --needed --noconfirm archlinuxcn-keyring
+fi

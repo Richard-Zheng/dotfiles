@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# Re-run this script whenever the btrbk config or the timer override changes.
+# btrbk.conf: {{ include "etc/btrbk/btrbk.conf.tmpl" | sha256sum }}
+# override.conf: {{ include "etc/systemd/system/btrbk.timer.d/override.conf" | sha256sum }}
+
+if ! type -P systemctl >/dev/null 2>&1; then
+  log_info "systemctl not found, skipping btrbk timer setup"
+  exit 0
+fi
+
+if ! command -v btrbk >/dev/null 2>&1; then
+  log_info "btrbk not installed, skipping btrbk timer setup"
+  exit 0
+fi
+
+c sudo systemctl daemon-reload
+c sudo systemctl enable --now btrbk.timer

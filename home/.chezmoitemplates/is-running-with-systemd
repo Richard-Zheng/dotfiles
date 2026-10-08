@@ -1,0 +1,5 @@
+{{- /* Emits "true" when PID 1 is systemd, so scripts can be skipped in
+       containers (devcontainers, WSL without systemd) where systemctl fails. */ -}}
+{{- if eq (output "ps" "--no-headers" "-o" "comm" "1" | trim) "systemd" -}}
+true
+{{- end -}}

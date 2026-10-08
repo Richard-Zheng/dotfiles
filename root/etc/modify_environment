@@ -1,0 +1,41 @@
+{{- /* chezmoi:modify-template */ -}}
+
+{{- /*
+Merge the Fcitx5 input-method variables into /etc/environment, which is owned
+by the `pam` package and must not be replaced wholesale.
+
+IMPORTANT: Arch's pam_env.so uses its built-in parser (it is NOT linked against
+libeconf), and that parser rejects any line whose key contains a space before
+`=`. So we must emit `KEY=VAL`, never `KEY = VAL`. `toIni` inserts spaces, so it
+is unusable here; instead we only append the missing variables and keep the
+existing file untouched.
+*/ -}}
+
+{{- $vars := dict
+  "GTK_IM_MODULE" "fcitx"
+  "QT_IM_MODULE" "fcitx"
+  "XMODIFIERS" "@im=fcitx"
+  "SDL_IM_MODULE" "fcitx"
+  "GLFW_IM_MODULE" "ibus"
+-}}
+
+{{- $out := list -}}
+{{- $present := dict -}}
+
+{{- range $line := splitList "\n" (.chezmoi.stdin | trimSuffix "\n") -}}
+{{-   $trimmed := trim $line -}}
+{{-   if and $trimmed (not (hasPrefix $trimmed "#")) -}}
+{{-     $key := trim (index (splitList "=" $trimmed) 0) -}}
+{{-     $present = set $present $key true -}}
+{{-   end -}}
+{{-   $out = append $out $line -}}
+{{- end -}}
+
+{{- range $key, $value := $vars -}}
+{{-   if not (hasKey $present $key) -}}
+{{-     $out = append $out (printf "%s=%s" $key $value) -}}
+{{-   end -}}
+{{- end -}}
+
+{{- $out | join "\n" -}}
+{{- "\n" -}}

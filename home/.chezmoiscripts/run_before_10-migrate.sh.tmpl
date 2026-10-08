@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# This script runs before anything else on every `chezmoi apply`. It handles
+# migrations that chezmoi itself cannot express.
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+migrated=false
+
+# The config file moved from chezmoi.toml to chezmoi.yaml (chezmoi refuses to
+# start when both exist). Remove the old one and ask for a re-init.
+# {{ if and (stat .chezmoi.configFile) (not (hasSuffix ".yaml" .chezmoi.configFile)) }}
+log_red "⚠️ Detected old configuration file at '{{ .chezmoi.configFile }}'. Deleting it..."
+rm -f "{{ .chezmoi.configFile }}"
+migrated=true
+# {{ end }}
+
+if [[ "${migrated}" == true ]]; then
+  error "
+❌ Manual action needed. To continue, please run:
+
+👉 chezmoi init --source '{{ .chezmoi.workingTree }}' && chezmoi apply --force
+"
+fi

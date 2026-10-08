@@ -1,0 +1,143 @@
+# shellcheck shell=bash
+
+set -euo pipefail
+
+if [[ -n "${DOTFILES_DEBUG:-}" ]]; then
+  set -x
+fi
+
+function ensure_path_entry() {
+  local entries=("$@")
+
+  for entry in "${entries[@]}"; do
+    if [[ ":${PATH}:" != *":${entry}:"* ]]; then
+      export PATH="${entry}:${PATH}"
+    fi
+  done
+}
+
+function log_color() {
+  local color_code="$1"
+  shift
+
+  printf "\033[${color_code}m%s\033[0m\n" "$*" >&2
+}
+
+function log_red() {
+  log_color "0;31" "$@"
+}
+
+function log_blue() {
+  log_color "0;34" "$@"
+}
+
+function log_green() {
+  log_color "1;32" "$@"
+}
+
+function log_yellow() {
+  log_color "1;33" "$@"
+}
+
+function log_task() {
+  log_blue "🔃" "$@"
+}
+
+function log_manual_action() {
+  log_red "⚠️" "$@"
+}
+
+function log_c() {
+  log_yellow "👉" "$@"
+}
+
+function c() {
+  log_c "$@"
+  "$@"
+}
+
+function c_exec() {
+  log_c "$@"
+  exec "$@"
+}
+
+function log_error() {
+  log_red "❌" "$@"
+}
+
+function log_info() {
+  log_blue "ℹ️" "$@"
+}
+
+function error() {
+  log_error "$@"
+  exit 1
+}
+
+# Report whether a package is installed, using whichever package manager is
+# available. Works on Arch (pacman), Debian/Ubuntu (dpkg) and macOS (brew).
+function package_is_installed() {
+  local package="$1"
+  if type -P pacman >/dev/null 2>&1; then
+    pacman -Q "${package}" &>/dev/null
+  elif type -P dpkg >/dev/null 2>&1; then
+    dpkg -s "${package}" &>/dev/null
+  elif type -P brew >/dev/null 2>&1; then
+    brew list "${package}" &>/dev/null
+  else
+    return 1
+  fi
+}
+
+# Install packages with the first package manager found. Capability detection
+# instead of branching on the OS keeps a single script working everywhere.
+function install_packages() {
+  local packages=("$@")
+  [[ ${#packages[@]} -eq 0 ]] && return 0
+
+  if type -P pacman >/dev/null 2>&1; then
+    log_task "Installing packages with pacman: ${packages[*]}"
+    c sudo pacman -S --needed --noconfirm "${packages[@]}"
+  elif type -P apt-get >/dev/null 2>&1; then
+    log_task "Installing packages with apt: ${packages[*]}"
+    c sudo env DEBIAN_FRONTEND=noninteractive apt-get install --yes "${packages[@]}"
+  elif type -P brew >/dev/null 2>&1; then
+    log_task "Installing packages with brew: ${packages[*]}"
+    if declare -F brew >/dev/null; then
+      c brew install "${packages[@]}"
+    else
+      c command brew install "${packages[@]}"
+    fi
+  else
+    error "No supported package manager found to install: ${packages[*]}"
+  fi
+}
+
+# sudo wrapper that:
+# - bypasses sudo when already running as root (rootmoi), and
+# - supports `sudo exec ...` so the wrapped command can replace the shell.
+function sudo() {
+  local exec=false
+  if [[ "${1:-}" == "exec" ]]; then
+    shift
+    exec=true
+  fi
+
+  if [[ "$(id -u)" -eq 0 ]]; then
+    if [[ "${exec}" == true ]]; then
+      exec "$@"
+    else
+      "$@"
+    fi
+  else
+    if ! command sudo --non-interactive true 2>/dev/null; then
+      log_manual_action "Root privileges are required, please enter your password below"
+      command sudo --validate
+    fi
+    if [[ "${exec}" == true ]]; then
+      exec sudo "$@"
+    else
+      command sudo "$@"
+    fi
+  fi
+}

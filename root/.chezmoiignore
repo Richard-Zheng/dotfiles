@@ -1,0 +1,12 @@
+{{- /* btrbk is Linux/btrfs only. */ -}}
+{{- if not .is_linux }}
+etc/btrbk
+etc/systemd/system/btrbk.timer.d
+.chezmoiscripts/*-btrbk*
+.chezmoiscripts/*-proj-subvolumes*
+{{- end }}
+
+{{- /* keyd is Linux only. */ -}}
+{{- if not .is_linux }}
+etc/keyd
+{{- end }}

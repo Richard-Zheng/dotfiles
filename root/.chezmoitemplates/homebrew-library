@@ -1,0 +1,31 @@
+# shellcheck shell=bash
+
+# Homebrew is used on macOS and optionally on Linux. Keep every known prefix on
+# PATH so the `brew` shim works regardless of where it was installed.
+readonly home_homebrew_prefix="${HOME}/.linuxbrew"
+readonly mac_arm_homebrew_prefix="/opt/homebrew"
+readonly mac_intel_homebrew_prefix="/usr/local"
+readonly linux_homebrew_prefix="/home/linuxbrew/.linuxbrew"
+
+ensure_path_entry \
+  "${home_homebrew_prefix}/bin" \
+  "${mac_arm_homebrew_prefix}/bin" \
+  "${mac_intel_homebrew_prefix}/bin" \
+  "${linux_homebrew_prefix}/bin"
+
+# Homebrew misbehaves when stdout is not a TTY (CI, scripts), so wrap it with
+# `script` to allocate a pseudo-TTY. The flags differ between BSD (macOS) and
+# util-linux (Linux).
+function faketty() {
+  local _system
+  _system="$(uname -s)"
+  if [[ ${_system} == Darwin ]]; then
+    script -qF /dev/null "$(printf "%q " "$@")"
+  else
+    script -qefc "$(printf "%q " "$@")" /dev/null
+  fi
+}
+
+function brew() {
+  faketty brew "${@}"
+}

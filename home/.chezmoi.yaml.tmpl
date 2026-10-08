@@ -1,0 +1,62 @@
+{{- /*
+Machine configuration for chezmoi.
+
+Values are prompted once on `chezmoi init` and stored in
+~/.config/chezmoi/chezmoi.yaml. Every other template reads them from `.` so
+the detection logic lives here only.
+*/ -}}
+
+{{- /* Non-interactive environments (CI, devcontainers, piped install.sh) must
+       not block on prompts, so only prompt when stdin is a TTY. */ -}}
+{{- $interactive := stdinIsATTY -}}
+
+{{- $type := "desktop" -}}
+{{- $isHeadless := false -}}
+
+{{- if $interactive -}}
+{{-   $type = promptChoiceOnce . "type" "Machine type" (list "desktop" "laptop" "headless") "desktop" -}}
+{{-   $isHeadless = promptBoolOnce . "is_headless" "Run without a graphical desktop" (eq $type "headless") -}}
+{{- else -}}
+{{-   if hasKey . "type" -}}{{- $type = .type -}}{{- end -}}
+{{-   if hasKey . "is_headless" -}}{{- $isHeadless = .is_headless -}}{{- end -}}
+{{- end -}}
+
+{{- /* Platform detection, computed once and exported via data. */ -}}
+{{- $os := .chezmoi.os -}}
+{{- $isLinux := eq $os "linux" -}}
+{{- $isMac := eq $os "darwin" -}}
+{{- $isArch := false -}}
+{{- $isDebian := false -}}
+{{- if and $isLinux (hasKey .chezmoi.osRelease "id") -}}
+{{-   $isArch = eq .chezmoi.osRelease.id "arch" -}}
+{{-   $isDebian = or (eq .chezmoi.osRelease.id "ubuntu") (eq .chezmoi.osRelease.id "debian") -}}
+{{- end -}}
+
+{{- /* This retains the value passed with --source on `chezmoi init`, so that
+       rootmoi can locate the `root/` source even when the repo is not in the
+       default location. */ -}}
+sourceDir: "{{ .chezmoi.workingTree }}"
+
+verbose: true
+pager: ""
+
+# age encryption for *.age files (secrets, tokens, ...).
+encryption: "age"
+age:
+  identity: "~/.config/chezmoi/key.txt"
+  recipient: "age1lqezkj7ahmlpshcu7csna8zya0hwktrxs7q50f4djhup2n64zawqtr96fh"
+
+diff:
+  exclude:
+    - scripts
+status:
+  exclude:
+    - always
+
+data:
+  type: {{ $type | quote }}
+  is_headless: {{ $isHeadless }}
+  is_linux: {{ $isLinux }}
+  is_mac: {{ $isMac }}
+  is_arch: {{ $isArch }}
+  is_debian: {{ $isDebian }}

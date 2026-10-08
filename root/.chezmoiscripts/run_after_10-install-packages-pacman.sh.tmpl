@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# Capability detection: this script only runs where pacman exists.
+if ! type -P pacman >/dev/null 2>&1; then
+  exit 0
+fi
+
+# Installed on every machine (headless included).
+readonly common_packages=(
+  zsh
+  tmux
+  git
+  curl
+  wget
+  unzip
+  jq
+  ripgrep
+  fd
+  base-devel
+  # Editor
+  neovim python-neovim lazygit tree-sitter-cli
+  # btrfs tooling for the ~/proj snapshots.
+  btrfs-progs
+  btrbk
+)
+
+# Only when a graphical desktop is wanted.
+readonly desktop_packages=(
+  # Window manager and desktop
+  i3-wm
+  dex
+  dunst
+  xss-lock
+  i3lock
+  network-manager-applet
+  pasystray
+  pipewire-pulse
+  playerctl
+  ghostty
+  rofi
+  i3blocks acpi lm_sensors sysstat bc alsa-utils
+  imagemagick
+  xclip
+  flameshot
+  terminus-font
+  xorg-xset
+  xorg-xrdb
+  xorg-xinput
+  sddm
+  kwallet
+  # Utilities
+  lxappearance
+  arandr
+  bluez
+  blueman
+  kwalletmanager
+  workrave
+  # Theme and icons
+  breeze
+  breeze-gtk
+  breeze-icons
+  # Fonts
+  noto-fonts-cjk ttf-firacode-nerd ttf-fira-sans ttf-nerd-fonts-symbols
+  # Input method
+  fcitx5-im fcitx5-chinese-addons fcitx5-nord fcitx5-material-color
+  # Basic desktop applications
+  konsole dolphin okular spectacle mpv nomacs feh
+  # keyd remaps keys on physical workstations
+  keyd
+)
+
+# Laptop-only packages.
+readonly laptop_packages=(
+  brightnessctl
+  cpupower
+  powertop
+  power-profiles-daemon
+)
+
+wanted_packages=("${common_packages[@]}")
+{{- if not .is_headless }}
+wanted_packages+=("${desktop_packages[@]}")
+{{- end }}
+{{- if eq .type "laptop" }}
+wanted_packages+=("${laptop_packages[@]}")
+{{- end }}
+
+missing_packages=()
+for package in "${wanted_packages[@]}"; do
+  if ! package_is_installed "${package}"; then
+    missing_packages+=("${package}")
+  fi
+done
+
+if [[ ${#missing_packages[@]} -gt 0 ]]; then
+  install_packages "${missing_packages[@]}"
+fi

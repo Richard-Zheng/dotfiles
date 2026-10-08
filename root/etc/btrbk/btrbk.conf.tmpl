@@ -1,0 +1,19 @@
+# btrbk: periodic local snapshots of ~/proj (managed by rootmoi).
+#
+# Snapshots live outside the source subvolume so that deleting ~/proj does not
+# take the snapshots with it.
+
+transaction_log        /var/log/btrbk.log
+
+# Only snapshot when the source subvolume actually changed, so the per-minute
+# timer does not pile up identical snapshots.
+snapshot_create        onchange
+
+# Keep every snapshot from the last hour, then the first snapshot of each of
+# the last 10 hours.
+snapshot_preserve_min  1h
+snapshot_preserve      10h
+
+volume /btrfs
+  subvolume    @home/{{ .non_root_user }}/proj
+    snapshot_dir @home/{{ .non_root_user }}/.proj-snapshots

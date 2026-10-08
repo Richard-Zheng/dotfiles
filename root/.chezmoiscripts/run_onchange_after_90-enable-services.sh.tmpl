@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+if ! type -P systemctl >/dev/null 2>&1; then
+  log_info "systemctl not found, skipping service setup"
+  exit 0
+fi
+
+{{- if not .is_headless }}
+
+# Display manager and networking for the graphical desktop.
+for service in sddm NetworkManager; do
+  if ! systemctl is-enabled --quiet "${service}" 2>/dev/null; then
+    log_task "Enabling ${service}"
+    c sudo systemctl enable "${service}"
+  fi
+done
+{{- end }}
+
+{{- if eq .type "laptop" }}
+
+if ! systemctl is-enabled --quiet power-profiles-daemon 2>/dev/null; then
+  log_task "Enabling power-profiles-daemon"
+  c sudo systemctl enable --now power-profiles-daemon.service
+fi
+{{- end }}
+
+# keyd is used on physical workstations.
+{{- if not .is_headless }}
+
+if command -v keyd >/dev/null 2>&1; then
+  if ! systemctl is-enabled --quiet keyd 2>/dev/null; then
+    log_task "Enabling keyd"
+    c sudo systemctl enable keyd
+  fi
+  # Reload so config changes take effect without a reboot.
+  if systemctl is-active --quiet keyd; then
+    c sudo keyd reload || c sudo systemctl restart keyd
+  fi
+fi
+{{- end }}

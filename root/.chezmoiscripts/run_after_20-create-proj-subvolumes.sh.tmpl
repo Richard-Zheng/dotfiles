@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# The source subvolume and its snapshot directory are the two btrfs subvolumes
+# btrbk operates on. Create them idempotently so a fresh machine is ready
+# without any manual steps.
+
+readonly home_dir="/home/{{ .non_root_user }}"
+readonly proj_subvolume="${home_dir}/proj"
+readonly snapshots_dir="${home_dir}/.proj-snapshots"
+
+if ! type -P btrfs >/dev/null 2>&1; then
+  log_info "btrfs not found, skipping ~/proj subvolume setup"
+  exit 0
+fi
+
+if [[ ! -e "${proj_subvolume}" ]]; then
+  log_task "Creating btrfs subvolume ${proj_subvolume}"
+  c sudo btrfs subvolume create "${proj_subvolume}"
+fi
+
+# Ensure the (non-root) user owns their project subvolume.
+c sudo chown '{{ .non_root_user }}:{{ .non_root_user }}' "${proj_subvolume}"
+
+if [[ ! -d "${snapshots_dir}" ]]; then
+  log_task "Creating snapshot directory ${snapshots_dir}"
+  c sudo mkdir -p "${snapshots_dir}"
+  c sudo chown '{{ .non_root_user }}:{{ .non_root_user }}' "${snapshots_dir}"
+fi

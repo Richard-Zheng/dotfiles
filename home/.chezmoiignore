@@ -1,0 +1,42 @@
+{{- /* Values are provided by .chezmoi.yaml.tmpl via the data section. */ -}}
+
+{{- if .is_headless }}
+# Graphical desktop configuration
+.config/alacritty/
+.config/chromium-flags.conf
+.config/dunst/
+.config/flameshot/
+.config/fontconfig/
+.config/ghostty/
+.config/i3/
+.config/i3blocks/
+.config/i3status/
+.config/Code/
+.config/fcitx5/
+.config/rofi/
+.config/mimeapps.list
+{{- end }}
+
+{{- if ne .type "laptop" }}
+# Laptop-only install scripts
+laptop/
+{{- end }}
+
+# Keep i3blocks license and reproducible C sources in Git, not in ~/.config.
+.config/i3blocks/LICENSE.md
+.config/i3blocks/README.md
+.config/i3blocks/bandwidth2/Makefile
+.config/i3blocks/bandwidth2/bandwidth2.c
+.config/i3blocks/cpu_usage2/Makefile
+.config/i3blocks/cpu_usage2/cpu_usage2.c
+
+{{- if ne .type "laptop" }}
+.config/i3blocks/battery/
+.config/i3blocks/power-profiles-daemon/
+{{- end }}
+
+.DS_Store
+.zcompdump
+lazy_lock.json
+
+README.md

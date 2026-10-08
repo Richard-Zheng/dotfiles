@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# uv is required at runtime by dot_local/bin/private_executable_aliyun-dns
+# (its shebang is `#!/usr/bin/env -S uv run --script`). That script is deployed
+# to every host, including headless servers, so uv is installed at the top
+# level rather than under laptop/.
+
+if command -v uv >/dev/null 2>&1; then
+  exit 0
+fi
+
+# Prefer the package manager when it provides uv (Arch's archlinuxcn repo does).
+if type -P pacman >/dev/null 2>&1 && pacman -Si uv &>/dev/null; then
+  install_packages uv
+  exit 0
+fi
+
+# Otherwise install into ~/.local/bin, which is already on PATH, and leave shell
+# startup files untouched so chezmoi remains the single source of truth.
+log_task "Installing uv into ~/.local/bin"
+export UV_INSTALL_DIR="${HOME}/.local/bin"
+export UV_NO_MODIFY_PATH=1
+c curl -LsSf https://astral.sh/uv/install.sh | sh
+"${HOME}/.local/bin/uv" --version

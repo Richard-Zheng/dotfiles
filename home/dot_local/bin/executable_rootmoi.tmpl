@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# rootmoi: run chezmoi as root against the `root/` source, applying system
+# files (under /etc, /usr/local, ...) declaratively. It is the privileged
+# counterpart of the user-level chezmoi run.
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../../.chezmoitemplates/scripts-library
+
+# {{ $configDir := joinPath .chezmoi.homeDir ".config/rootmoi" }}
+# {{ $configFile := joinPath $configDir "chezmoi.yaml" }}
+# {{ $persistentStateFile := joinPath $configDir "chezmoistate.boltdb" }}
+# {{ $cacheDir := joinPath .chezmoi.homeDir ".cache/rootmoi" }}
+
+if [[ -f '{{ .chezmoi.executable }}' ]]; then
+  executable='{{ .chezmoi.executable }}'
+else
+  ensure_path_entry "${HOME}/.local/bin" "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin"
+  executable=$(command -v chezmoi)
+fi
+
+# Create these directories *before* elevating, otherwise they would be owned by
+# root and break other programs that expect to write to ~/.config or ~/.cache.
+mkdir -p '{{ $configDir }}' '{{ $cacheDir }}'
+
+# Do not use sudo's --preserve-env: the sudo wrapper already bypasses sudo when
+# running as root. PATH is forwarded explicitly so chezmoi can find its helpers.
+env_args=(env "PATH=${PATH}")
+if [[ "${DOTFILES_DEBUG:-}" == true ]]; then
+  env_args+=("DOTFILES_DEBUG=true")
+fi
+
+sudo exec "${env_args[@]}" \
+  "${executable}" "$@" \
+  --config='{{ $configFile }}' \
+  --persistent-state='{{ $persistentStateFile }}' \
+  --cache='{{ $cacheDir }}'

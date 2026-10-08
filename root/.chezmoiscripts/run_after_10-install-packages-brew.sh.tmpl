@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+# {{ template "homebrew-library" }}
+
+# The following lines are for ShellCheck to correctly identify the above includes
+true || source ../.chezmoitemplates/scripts-library
+true || source ../.chezmoitemplates/homebrew-library
+
+# Capability detection: this script only runs where Homebrew exists. On macOS
+# Homebrew is the primary package manager; on Linux it is optional.
+if ! type -P brew >/dev/null 2>&1; then
+  exit 0
+fi
+
+export HOMEBREW_NO_ENV_HINTS=1
+export HOMEBREW_NO_ASK=1
+
+# Installed on every machine.
+readonly common_packages=(
+  chezmoi
+  zsh
+  tmux
+  git
+  jq
+  ripgrep
+  fd
+  neovim
+  lazygit
+  tree-sitter
+)
+
+# Only when a graphical desktop is wanted.
+readonly desktop_packages=(
+  ghostty
+  font-fira-code-nerd-font
+)
+
+wanted_packages=("${common_packages[@]}")
+{{- if not .is_headless }}
+wanted_packages+=("${desktop_packages[@]}")
+{{- end }}
+
+missing_packages=()
+for package in "${wanted_packages[@]}"; do
+  if ! package_is_installed "${package}"; then
+    missing_packages+=("${package}")
+  fi
+done
+
+if [[ ${#missing_packages[@]} -gt 0 ]]; then
+  install_packages "${missing_packages[@]}"
+fi
