@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# Debian/Ubuntu ship fd as "fdfind" (the "fd" name is taken by another package).
+# Provide a "fd" symlink so the same dotfiles work unchanged.
+if type -P fdfind >/dev/null 2>&1 && ! type -P fd >/dev/null 2>&1; then
+  log_task "Linking fdfind to fd in /usr/local/bin"
+  c sudo ln -sf "$(command -v fdfind)" /usr/local/bin/fd
+fi

@@ -28,4 +28,5 @@ status:
 
 data:
   non_root_user: "{{ .chezmoi.username }}"
+  non_root_home: "{{ .chezmoi.homeDir }}"
   {{- $data | toYaml | nindent 2 }}

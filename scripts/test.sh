@@ -35,23 +35,24 @@ done
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 dotfiles_root="$(realpath "${script_dir}/..")"
 
-# Pick a base image per OS family and the command that bootstraps the test user.
+# Per-OS bootstrap: install the minimal tools chezmoi needs and create a
+# passwordless-sudo test user. The encrypted files are skipped because CI has no
+# age key.
 case "${os}" in
 archlinux*)
   image="archlinux:latest"
-  setup='
+  bootstrap='
+    pacman-key --init
+    pacman-key --populate archlinux
     pacman -Sy --noconfirm --needed git curl sudo
-    useradd --create-home --shell /bin/bash tester
-    echo "tester ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/tester
   '
   ;;
 ubuntu*)
   image="ubuntu:${os#ubuntu-}"
-  setup='
+  bootstrap='
+    export DEBIAN_FRONTEND=noninteractive
     apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git curl sudo ca-certificates
-    useradd --create-home --shell /bin/bash tester
-    echo "tester ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/tester
+    apt-get install -y --no-install-recommends git curl ca-certificates sudo
   '
   ;;
 *)
@@ -68,18 +69,21 @@ docker run --rm --init \
   "${image}" \
   bash -c "
     set -euxo pipefail
-    ${setup}
+    ${bootstrap}
+    useradd --create-home --shell /bin/bash tester
+    echo 'tester ALL=(ALL) NOPASSWD:ALL' >/etc/sudoers.d/tester
     cp -r /dotfiles /home/tester/.dotfiles
     chown -R tester:tester /home/tester/.dotfiles
-    cd /home/tester
-    sudo -u tester env HOME=/home/tester \
-      DOTFILES_TEST=true ${debug:+DOTFILES_DEBUG=true} \
-      bash -c '
-        export PATH=\$HOME/.local/bin:\$PATH
-        if ! command -v chezmoi >/dev/null; then
-          sh -c \"\$(curl -fsSL https://get.chezmoi.io)\" -- -b \$HOME/.local/bin
-        fi
-        chezmoi init --source \$HOME/.dotfiles --apply --force
-        chezmoi data
-      '
+
+    sudo -u tester env HOME=/home/tester PATH=/home/tester/.local/bin:/usr/local/bin:/usr/bin:/bin bash -c '
+      set -euxo pipefail
+      cd \$HOME
+      if ! command -v chezmoi >/dev/null; then
+        sh -c \"\$(curl -fsSL https://get.chezmoi.io)\" -- -b \$HOME/.local/bin
+      fi
+      export PATH=\$HOME/.local/bin:\$PATH
+      ${debug:+export DOTFILES_DEBUG=true}
+      chezmoi init --source \$HOME/.dotfiles --apply --force --exclude=encrypted
+      chezmoi data
+    '
   "

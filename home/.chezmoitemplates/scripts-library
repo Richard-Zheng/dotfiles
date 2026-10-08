@@ -100,7 +100,8 @@ function install_packages() {
     c sudo pacman -S --needed --noconfirm "${packages[@]}"
   elif type -P apt-get >/dev/null 2>&1; then
     log_task "Installing packages with apt: ${packages[*]}"
-    c sudo env DEBIAN_FRONTEND=noninteractive apt-get install --yes "${packages[@]}"
+    c sudo apt-get update
+    c sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${packages[@]}"
   elif type -P brew >/dev/null 2>&1; then
     log_task "Installing packages with brew: ${packages[*]}"
     if declare -F brew >/dev/null; then

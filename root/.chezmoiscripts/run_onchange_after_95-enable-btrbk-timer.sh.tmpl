@@ -9,10 +9,7 @@ true || source ../.chezmoitemplates/scripts-library
 # btrbk.conf: {{ include "etc/btrbk/btrbk.conf.tmpl" | sha256sum }}
 # override.conf: {{ include "etc/systemd/system/btrbk.timer.d/override.conf" | sha256sum }}
 
-if ! type -P systemctl >/dev/null 2>&1; then
-  log_info "systemctl not found, skipping btrbk timer setup"
-  exit 0
-fi
+{{- if includeTemplate "is-running-with-systemd" . }}
 
 if ! command -v btrbk >/dev/null 2>&1; then
   log_info "btrbk not installed, skipping btrbk timer setup"
@@ -21,3 +18,8 @@ fi
 
 c sudo systemctl daemon-reload
 c sudo systemctl enable --now btrbk.timer
+
+{{- else }}
+
+log_info "systemd is not running, skipping btrbk timer setup"
+{{- end }}

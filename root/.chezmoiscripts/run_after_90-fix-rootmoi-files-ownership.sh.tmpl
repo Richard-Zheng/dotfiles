@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# rootmoi runs chezmoi as root, so it creates its config and cache files as
+# root. Hand them back to the normal user, otherwise the next unprivileged
+# rootmoi run (or any program writing to ~/.config / ~/.cache) fails.
+readonly config_dir="{{ .non_root_home }}/.config/rootmoi"
+readonly cache_dir="{{ .non_root_home }}/.cache/rootmoi"
+
+for dir in "${config_dir}" "${cache_dir}"; do
+  if [[ -e "${dir}" ]]; then
+    c sudo chown --recursive '{{ .non_root_user }}:{{ .non_root_user }}' "${dir}"
+  fi
+done

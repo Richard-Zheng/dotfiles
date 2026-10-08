@@ -9,7 +9,7 @@ true || source ../.chezmoitemplates/scripts-library
 # btrbk operates on. Create them idempotently so a fresh machine is ready
 # without any manual steps.
 
-readonly home_dir="/home/{{ .non_root_user }}"
+readonly home_dir="{{ .non_root_home }}"
 readonly proj_subvolume="${home_dir}/proj"
 readonly snapshots_dir="${home_dir}/.proj-snapshots"
 
