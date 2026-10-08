@@ -76,10 +76,22 @@ function error() {
 
 # Report whether a package is installed, using whichever package manager is
 # available. Works on Arch (pacman), Debian/Ubuntu (dpkg) and macOS (brew).
+# Also handles package *groups* (e.g. pacman's fcitx5-im): a group counts as
+# installed only when every member package is present.
 function package_is_installed() {
   local package="$1"
   if type -P pacman >/dev/null 2>&1; then
-    pacman -Q "${package}" &>/dev/null
+    if pacman -Q "${package}" &>/dev/null; then
+      return 0
+    fi
+    local members
+    members="$(pacman -Qgq "${package}" 2>/dev/null)" || return 1
+    [[ -n "${members}" ]] || return 1
+    local member
+    while IFS= read -r member; do
+      pacman -Q "${member}" &>/dev/null || return 1
+    done <<<"${members}"
+    return 0
   elif type -P dpkg >/dev/null 2>&1; then
     dpkg -s "${package}" &>/dev/null
   elif type -P brew >/dev/null 2>&1; then
