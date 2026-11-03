@@ -20,6 +20,13 @@ for service in sddm NetworkManager; do
 done
 {{- end }}
 
+# Keep the wall clock accurate; hardware clocks drift and nothing else on this
+# system pulls time. The NTP pool is set in etc/systemd/timesyncd.conf.d.
+if ! systemctl is-enabled --quiet systemd-timesyncd 2>/dev/null; then
+  log_task "Enabling systemd-timesyncd"
+  c sudo systemctl enable --now systemd-timesyncd
+fi
+
 {{- if eq .type "laptop" }}
 
 if ! systemctl is-enabled --quiet power-profiles-daemon 2>/dev/null; then
