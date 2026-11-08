@@ -63,7 +63,8 @@ rpc.exports.waitModule = (name, timeoutMs = 5000) => new Promise((resolve, rejec
 
 /// "resolve on the first call to a symbol", returns the captured args
 rpc.exports.firstCall = (mod, sym, timeoutMs = 5000) => new Promise((resolve, reject) => {
-  const addr = Module.findExportByName(mod, sym);
+  const m = Process.findModuleByName(mod);
+  const addr = m ? m.findExportByName(sym) : Module.findGlobalExportByName(sym);
   if (!addr) return reject(new Error("no symbol " + sym));
   const listener = Interceptor.attach(addr, {
     onEnter(args) {
@@ -123,7 +124,6 @@ Memory.patchCode(addr, 4, code => {
 ```
 
 Still risky on iOS `__TEXT` of a signed binary (page invalidation → SIGBUS/SIGILL).
-When a runtime patch crashes the app later, patch the file on disk and re-sign instead.
 
 ## 8. Message routing conventions that scale
 

@@ -56,7 +56,7 @@ the same words appear in other endpoints' payloads, and you end up substituting 
 document (symptom: a detail screen that suddenly shows zeros). Match on the exact error
 code plus a structural marker, and explicitly exclude other documents' unique fields:
 
-```
+```js
 if (body.includes('"error":10603') && body.includes('"pointsResModels"') && !body.includes('"rrid"'))
 ```
 

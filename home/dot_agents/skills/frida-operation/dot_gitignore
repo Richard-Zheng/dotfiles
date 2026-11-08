@@ -1,0 +1,6 @@
+repomix-output.xml
+__pycache__/
+*.pyc
+node_modules/
+dist_agent.js
+*.ips

@@ -12,7 +12,8 @@ import argparse, bisect, json, sys
 
 
 def load(path):
-    raw = open(path, encoding="utf8", errors="replace").read()
+    with open(path, encoding="utf8", errors="replace") as f:
+        raw = f.read()
     head_line, sep, body_text = raw.partition("\n")
     if not sep:
         raise SystemExit("not an .ips (no second line)")
@@ -46,12 +47,25 @@ def summarize(head, body):
     exc = body.get("exception") or {}
     term = body.get("termination") or {}
     fault = None
-    codes = (exc.get("codes") or "").split(",")
-    if len(codes) == 2:
+    raw_codes = exc.get("codes") or ""
+    if isinstance(raw_codes, str):
+        codes = [c.strip() for c in raw_codes.split(",") if c.strip()]
+    elif isinstance(raw_codes, list):
+        codes = [str(c).strip() for c in raw_codes]
+    else:
+        codes = []
+
+    if len(codes) >= 2:
         try:
-            fault = int(codes[1].strip(), 16)
+            fault = int(codes[1], 16)
         except ValueError:
             fault = None
+    elif len(codes) == 1:
+        try:
+            fault = int(codes[0], 16)
+        except ValueError:
+            fault = None
+
     return {
         "proc": body.get("procName") or head.get("name"),
         "pid": body.get("pid") or head.get("pid"),
@@ -60,7 +74,7 @@ def summarize(head, body):
         "exception": exc.get("type"),
         "signal": exc.get("signal"),
         "subtype": exc.get("subtype"),
-        "termination": term.get("indicator") or term.get("indicator"),
+        "termination": term.get("indicator") or term.get("code"),
         "fault": fault,
     }
 

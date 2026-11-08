@@ -39,9 +39,12 @@ rpc.exports = {
     let p = null;
     if (spec.includes("!")) {
       const [mod, sym] = spec.split("!");
-      p = Module.findExportByName(mod, sym);
+      const m = Process.findModuleByName(mod);
+      if (m && m.findExportByName) p = m.findExportByName(sym);
+      else if (typeof Module.findExportByName === "function") p = Module.findExportByName(mod, sym);
     } else {
-      p = Module.findGlobalExportByName(spec);
+      if (typeof Module.findGlobalExportByName === "function") p = Module.findGlobalExportByName(spec);
+      else if (typeof Module.findExportByName === "function") p = Module.findExportByName(null, spec);
     }
     return p ? p.toString() : null;
   },

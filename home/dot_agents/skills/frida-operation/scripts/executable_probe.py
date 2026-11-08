@@ -71,12 +71,29 @@ def main():
             ready.set()
             return
         payload = msg.get("payload") or {}
-        if payload.get("tag") == "ready":
+        tag = payload.get("tag") or payload.get("t")
+        if tag == "ready":
             ready.set()
-        elif payload.get("tag") == "exception":
+        elif tag == "exception":
             print("!! in-process exception:", payload, file=sys.stderr)
+        elif tag == "log":
+            msg_text = payload.get("msg") or str(payload)
+            print(f"[*] {msg_text}", file=sys.stderr, flush=True)
 
-    script = sess.create_script(open(args.agent).read(), name="probe")
+    agent_path = os.path.abspath(args.agent)
+    if agent_path.endswith(".ts"):
+        compiler = frida.Compiler()
+        compiler.on("diagnostics", lambda diag: print(f"[Compiler] {diag}", file=sys.stderr))
+        try:
+            agent_source = compiler.build(agent_path)
+        except Exception as e:
+            print(f"!! failed to compile TypeScript agent {agent_path}: {e}", file=sys.stderr)
+            return 2
+    else:
+        with open(agent_path, encoding="utf8") as f:
+            agent_source = f.read()
+
+    script = sess.create_script(agent_source, name=os.path.splitext(os.path.basename(agent_path))[0])
     script.on("message", on_msg)
     script.on("destroyed", lambda: ready.set())
     script.load()

@@ -1,115 +1,188 @@
-# Frida 17.x notes (verified against the installed toolchain)
+# Frida 17.x Technical Reference & Migration Guide
 
-Installed here: **frida (Python) 17.23.3**, device `frida-server` 17.22.2,
-`frida-tools` 14.x. Python package path: `/usr/lib/python3.14/site-packages/frida/`
-(`__init__.py` = sync API, `aio.py` = asyncio API, `_frida.pyi` = low-level stubs).
+Frida 17.0.0 represents a major architectural overhaul focused on **decoupling runtime bridges from GumJS, reducing footprint, and enforcing modern, asynchronous, and modular JavaScript/TypeScript APIs**.
 
-## Breaking changes in 17.0.0
+Authoritative references:
+- Release Notes: https://frida.re/news/2025/05/17/frida-17-0-0-released/
+- Runtime Bridges: https://frida.re/docs/bridges/
 
-Source: <https://frida.re/news/2025/05/17/frida-17-0-0-released/>,
-<https://frida.re/docs/bridges/>
+---
 
-1. **Runtime bridges are no longer bundled with GumJS.** `frida-objc-bridge`,
-   `frida-java-bridge`, `frida-swift-bridge` are separate ESM packages consumed with
-   `frida-compile`. Consequence: an agent loaded through `create_script()` has
-   `typeof ObjC === "undefined"`. The `frida` REPL and `frida-trace` do bundle all three
-   (frida-tools >= 14.0.0) so old copy-paste snippets still work there — that is why
-   "it works in the REPL but not from my Python script".
-2. **Legacy enumeration APIs removed**: `Process.enumerateModules({ onMatch, onComplete })`,
-   `Process.enumerateThreads(...)` callbacks. Use the array-returning form:
-   `for (const m of Process.enumerateModules()) ...`.
-3. **Legacy memory accessors removed**: `Memory.readU32(p)` / `Memory.writeU32(p, v)`.
-   Use methods on `NativePointer`: `p.readU32()`, `p.writeU32(v)` (writes return the
-   pointer, so they chain).
+## 1. Core Breaking Changes: Unbundled Language Bridges
 
-### What the JS runtime actually exposes (measured on server 17.22.2)
+Prior to Frida 17, `frida-objc-bridge`, `frida-java-bridge`, and `frida-swift-bridge` were statically embedded into the GumJS runtime.
 
-```
-Module.findExportByName       -> undefined      (removed; use the two below)
-Module.getExportByName        -> undefined
-Module.findGlobalExportByName -> function
-Module.getGlobalExportByName  -> function
-Memory.readU32                -> undefined      (use ptr.readU32())
-ObjC                          -> undefined      (bridge not bundled)
-Process.enumerateModules()    -> array
-```
+- **Current State**: Starting with 17.0.0, all language bridges are completely decoupled from GumJS and published as standalone ESM (ECMAScript Modules) packages on npm.
+- **Scope & Symptoms**:
+  - **`session.create_script()` (Python/C/Node.js host)**: When loading plain JS scripts, runtime globals are unpopulated: `typeof ObjC === "undefined"`, `typeof Java === "undefined"`, `typeof Swift === "undefined"`.
+  - **CLI REPL (`frida`) & `frida-trace`**: To preserve backward compatibility and interactive ad-hoc usage, `frida-tools >= 14.0.0` **bundles all three bridges**. This is why bridge snippets work seamlessly in the interactive REPL but fail with `ReferenceError: ObjC is not defined` when executed via host Python scripts.
 
-So `sym()`/`findSymbol()` helpers must not call `findExportByName` at all; if you need a
-module-scoped lookup, call `Module.findExportByName` only after feature-detecting it,
-otherwise use `findGlobalExportByName`.
+Bridge Integration Strategies:
 
-Also seen on 17.x: `v.respondsToSelector_('text')` can return `false` for views that do
-respond, so guarding on it silently yields `null`. Use `try { v.text() } catch {}`.
+### Option A: Just-In-Time Compilation with `frida.Compiler` (Recommended)
 
-## Getting a bridge into a `create_script()` agent
-
-Option A — compile with the CLI (needs node/npm once):
-
-```sh
-frida-create -t agent          # scaffolding in cwd
-npm install frida-objc-bridge
-# agent.ts
-#   import ObjC from "frida-objc-bridge";
-#   console.log(ObjC.available);
-frida-compile agent.ts -o _agent.js -S -c
-```
-
-Option B — compile from Python, same result, no shell:
+Frida's Python bindings expose `frida.Compiler`, which bundles TypeScript and standard ESM `import` statements on the fly in memory without external build steps:
 
 ```python
 import frida
+
 compiler = frida.Compiler()
-compiler.on("diagnostics", lambda d: print("diag", d))
-compiled = compiler.build("agent.ts")       # returns the JS bundle as str
-script = session.create_script(compiled)
+compiler.on("diagnostics", lambda diag: print(f"[Compiler] {diag}"))
+
+# agent.ts can directly use `import ObjC from "frida-objc-bridge"`
+bundle_code = compiler.build("agent.ts")
+
+script = session.create_script(bundle_code)
+script.load()
 ```
 
-Option C — no bridge at all (often enough):
+### Option B: Pre-compilation via `frida-compile` CLI
 
-```js
-const objc_getClass   = new NativeFunction(Module.getGlobalExportByName("objc_getClass"), "pointer", ["pointer"]);
-const sel_registerName = new NativeFunction(Module.getGlobalExportByName("sel_registerName"), "pointer", ["pointer"]);
-const objc_msgSend    = new NativeFunction(Module.getGlobalExportByName("objc_msgSend"), "pointer", ["pointer","pointer"]);
+Use npm to install required bridges as dependencies and produce a self-contained bundle:
+
+```bash
+npm init -y
+npm install --save-dev frida-compile @types/frida-gum
+npm install frida-objc-bridge frida-java-bridge
+
+# agent.ts:
+# import ObjC from "frida-objc-bridge";
+# import Java from "frida-java-bridge";
+
+npx frida-compile agent.ts -o dist_agent.js -S -c
+```
+
+### Option C: Bridge-Free Native Invocations (Zero Overhead)
+
+For lightweight probing, hooking, or inspecting specific selectors, bypass bridges entirely by making raw C runtime calls:
+
+```javascript
+function sym(name) {
+  try { return Module.getGlobalExportByName(name); } catch (e) {}
+  return null;
+}
+
+const objc_getClass = new NativeFunction(sym("objc_getClass"), "pointer", ["pointer"]);
+const sel_registerName = new NativeFunction(sym("sel_registerName"), "pointer", ["pointer"]);
+const objc_msgSend = new NativeFunction(sym("objc_msgSend"), "pointer", ["pointer", "pointer"]);
+
 const NSString = objc_getClass(Memory.allocUtf8String("NSString"));
 const sel = sel_registerName(Memory.allocUtf8String("stringWithUTF8String:"));
-const s = objc_msgSend(NSString, sel, Memory.allocUtf8String("hi"));
+const res = objc_msgSend(NSString, sel, Memory.allocUtf8String("hello, frida 17"));
 ```
 
-(Keep `Memory.allocUtf8String` results alive for as long as the callee may use them —
-see "String allocation" in <https://frida.re/docs/best-practices/>.)
+---
 
-## Python API surface worth knowing (names verified in `frida/__init__.py`)
+## 2. Runtime API Deprecations & Modern Replacements
+
+### 2.1 Deprecation of Legacy `Module` Lookup APIs
+
+Global and legacy static export resolution methods have been restructured or removed:
+
+- ❌ `Module.findExportByName(mod, sym)` (Deprecated / strict argument requirements)
+- ❌ `Module.getExportByName(mod, sym)` (Removed)
+- ❌ `Module.findSymbolByName` / `Module.getSymbolByName` (Removed)
+- ❌ `Module.findBaseAddress` / `Module.getBaseAddress` (Removed)
+- ❌ `Module.ensureInitialized` (Removed)
+
+**Modern Replacements**:
+
+1. **Global Export Lookup** (Recommended for cross-module symbols):
+
+```javascript
+Module.findGlobalExportByName("open");
+Module.getGlobalExportByName("open"); // Throws a JS exception if not found
+```
+
+2. **Module Instance Lookup** (Fastest; avoids repeated global namespace scans):
+
+```javascript
+const libc = Process.getModuleByName("libc.so"); // or Process.findModuleByName(...)
+const openPtr = libc.getExportByName("open");
+const base = libc.base;
+```
+
+### 2.2 Removal of Callback-Based Enumeration APIs
+
+APIs accepting legacy `{ onMatch, onComplete }` callback objects have been removed in favor of direct array returns:
+
+```javascript
+// ❌ Legacy syntax (Removed)
+Process.enumerateModules({
+  onMatch: function(mod) { ... },
+  onComplete: function() { ... }
+});
+
+// ✅ Modern 17.x syntax
+for (const mod of Process.enumerateModules()) {
+  // Access mod.name, mod.base, etc.
+}
+```
+
+### 2.3 Native Pointer Accessors
+
+* ❌ `Memory.readU32(p)` and `Memory.writeU32(p, val)` are removed.
+* ✅ Use instance methods directly on `NativePointer` (write operations support chaining):
+```javascript
+const val = p.readU32();
+p.writeU32(0x1337).add(4).writeU32(0xdeadbeef);
+```
+
+---
+
+## 3. Python API surface worth knowing
+
+Frida provides synchronized (`frida.*`) and asynchronous (`frida.aio.*`) APIs. Do not mix both paradigms within the same runner.
+
+### 3.1 Synchronous API Surface
+
+* `Device.spawn(program, argv=None, envp=None, cwd=None, stdio="pipe")`
+* `Device.resume(target)` / `Device.kill(target)` / `Device.attach(target)`
+* `Device.on("output" | "spawn-added" | "spawn-removed" | "child-added" | "child-removed" | "process-crashed" | "uninjected" | "lost", handler)`
+* `DeviceManager.add_remote_device(addr)`
+* `Session.create_script(source, name=None, snapshot=None, runtime=None)`
+* `Session.on("detached", handler)`: `handler(reason, crash)`
+* `Script.load()`: Synchronous; blocks until top-level agent execution completes.
+* `Script.exports_sync.<method>(*args)`: Blocking RPC call returning native Python objects.
+* `Script.list_exports_sync()`
+* `Script.on("message" | "destroyed", handler)`
+
+### 3.2 Asynchronous API (`frida.aio`)
+
+For concurrent tasks, UI-driven tools, or streaming environments, prefer `asyncio`:
 
 ```python
-Device.spawn(program, argv=None, envp=None, env=None, cwd=None, stdio=None, **aux)  # :626
-Device.resume(target); Device.kill(target); Device.attach(target)
-Device.enable_spawn_gating(); Device.disable_spawn_gating()
-Device.on("output" | "spawn-added" | "spawn-removed" | "child-added" | "child-removed"
-          | "process-crashed" | "uninjected" | "lost")                             # :546-561
-DeviceManager.add_remote_device(addr)                                               # tunneled server
-Session.on("detached", cb)          # cb(reason, crash) ; reason: application-requested,
-                                    # process-replaced, process-terminated, connection-terminated, device-lost
-Session.create_script(source, name=None, snapshot=None, runtime=None)
-Script.load()                       # synchronous; hooks are installed when it returns
-Script.on("message" | "destroyed")
-Script.exports_sync.<fn>(...)       # blocking RPC -> Python value                    # :1707
-Script.list_exports_sync()                                                          # :1752
-Script.post(obj) / script-side recv()
+import asyncio
+import frida.aio
+
+async def main():
+    dev = await frida.aio.get_usb_device()
+    pid = await dev.spawn(["/bin/ls", "-la"], stdio="pipe")
+    sess = await dev.attach(pid)
+    
+    script = await sess.create_script("rpc.exports = { ping() { return 'pong'; } };")
+    await script.load()
+    await dev.resume(pid)
+    
+    res = await script.exports.ping()
+    print("RPC Result:", res)
+    await sess.detach()
+
+asyncio.run(main())
 ```
 
-`frida/aio.py` mirrors everything with `async`/`await` (`await dev.spawn(...)`,
-`await script.load()`, `await script.exports.fn()`), so no threads and no sleeps.
+---
 
-## JS API verified present in the 17.x typings (@types/frida-gum)
+## 4. Key Troubleshooting & Environmental Pitfalls
 
-`Process.attachModuleObserver({onAdded,onRemoved,onLoad?,...})`, `Module.ensureInitialized`,
-`Process.setExceptionHandler`, `Process.runOnThread`, `Process.attachThreadObserver`,
-`Memory.patchCode`, `Memory.scanSync`, `Process.enumerateRanges`, `Thread.backtrace`,
-`Interceptor.attach/replace/revert`, `NativeCallback`/`NativeFunction`, `setTimeout/setInterval`.
+1. **Version Parity**:
+* Host `frida` (Python package/CLI) and target `frida-server` must share the same major version. Mismatched majors (e.g., 16.x client talking to 17.x server) frequently manifest as unexpected `ProtocolError` or `TransactionError`.
 
-## Version pairing pitfalls
+2. **Rootless iOS Server Lifecycle**:
+* Do not manually `killall frida-server` on rootless iOS environments to prevent port collision or degraded privilege states. Kickstart the launchd daemon cleanly:
+```bash
+sudo launchctl kickstart -k system/re.frida.server
+```
 
-- Client newer than server is usually fine; the reverse is not. `frida --version` and
-  `frida-ps -U` are the quick health check through the tunnel.
-- On iOS rootless, restart the server with
-  `sudo launchctl kickstart -k system/re.frida.server` instead of killing it manually.
+3. **Early Spawn (`-f`) Execution Window**:
+* When spawning (`-f`), scripts execute during dynamic loader initialization (`_start` / `dyld`) before `main()`. Accessing higher-level runtime environments (e.g., querying Foundation paths or calling initialized singletons) too early can cause targets to terminate immediately. Defer early initialization using `Process.attachModuleObserver` or thread-dispatch queues.
