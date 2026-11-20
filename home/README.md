@@ -55,3 +55,39 @@ stored in `~/.proj-snapshots`, outside the source subvolume.
 
 - `selectdefaultapplication-fork-git` — set default applications for MIME types
   and URL schemes in `~/.config/mimeapps.list`
+
+## carbon machine profile
+
+Keep `type: laptop` and set `profile: carbon` in the local chezmoi config.
+`chezmoi init` offers `generic` and `carbon`; a new host named carbon defaults
+its profile to carbon. Existing configs without a profile keep generic behavior.
+After selecting the profile, run `chezmoi apply`. The rootmoi config forwards it.
+
+The carbon profile manages:
+
+- Alacritty as the i3 terminal, with a shared `term` tmux session.
+- greetd + tuigreet and the Xorg/i3 startup scripts. SDDM is disabled for the
+  next login without stopping an existing graphical session.
+- The internal eDP-1 panel: 1920x1200 at 60 Hz for the Linux console/greeter,
+  2880x1800 at 60 Hz in i3. Firmware and GRUB display modes are separate.
+- Backlight permissions for the video group and membership for the normal user.
+- SUSTech official mirrors; the existing archlinuxcn setup uses SUSTech too.
+- Tailscale, Pi, Codex, sing-box, Intel graphics and audio firmware packages;
+  tailscaled and Bluetooth services. Tailscale account login remains manual.
+- Hibernation boot arguments in `/etc/default/grub.d/90-carbon.cfg`. The device
+  UUID and physical resume offset are read from `/swap/swapfile` whenever
+  grub-mkconfig runs, rather than stored in Git. The hardware script regenerates
+  grub.cfg after validating it; it never installs the bootloader or changes EFI
+  boot entries.
+
+Installation prerequisites stay outside chezmoi: the partitions, Btrfs subvolumes,
+`fstab`, and the existing 16 GiB `/swap/swapfile` in `@swap`. Do not snapshot the
+swap subvolume. Recreating or relocating the swapfile requires regenerating GRUB.
+Disk UUIDs, passwords, EFI boot order and SSH host keys are not synchronized.
+The sing-box JSON stays under `/etc/sing-box`; generate it separately using
+`Documents/sb/devices/linux.js`, validate it, and then restart the service.
+The profile only enables sing-box if that config already exists.
+
+The earlier Ghostty/Cairo workaround is not needed by Alacritty and is not part
+of the carbon profile. Existing encrypted user credentials continue to use the
+repository's age mechanism; the decryption key remains local.

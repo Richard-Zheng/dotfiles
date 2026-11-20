@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+{{ if eq (get . "profile") "carbon" -}}
+set -euo pipefail
+usermod -aG video '{{ .non_root_user }}'
+install -d -m755 /etc/greetd/sessions
+udevadm control --reload-rules
+udevadm trigger --action=add --subsystem-match=backlight
+udevadm settle
+# Generate first, compare, then replace so repeated applies are idempotent.
+if [[ -f /boot/grub/grub.cfg ]]; then
+    candidate=$(mktemp /boot/grub/.carbon-grub.XXXXXX)
+    trap 'rm -f "$candidate"' EXIT
+    grub-mkconfig -o "$candidate"
+    grub-script-check "$candidate"
+    if ! cmp -s "$candidate" /boot/grub/grub.cfg; then
+        install -m600 "$candidate" /boot/grub/grub.cfg
+    fi
+fi
+{{ else -}}
+exit 0
+{{ end -}}

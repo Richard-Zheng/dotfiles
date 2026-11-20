@@ -40,3 +40,7 @@ laptop/
 lazy_lock.json
 
 README.md
+
+{{ if ne (get . "profile") "carbon" -}}
+.local/bin/tmux-terminal
+{{ end -}}

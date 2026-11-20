@@ -1,0 +1,3 @@
+#!/bin/sh
+# Attach or create the shared terminal session atomically.
+exec tmux new-session -A -s term

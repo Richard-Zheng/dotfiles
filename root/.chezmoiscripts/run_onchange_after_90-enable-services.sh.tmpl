@@ -12,12 +12,31 @@ true || source ../.chezmoitemplates/scripts-library
 {{- if not .is_headless }}
 
 # Display manager and networking for the graphical desktop.
-for service in sddm NetworkManager; do
+{{- if eq (get . "profile") "carbon" }}
+# Enable the replacement for the next login without terminating a desktop.
+if systemctl is-enabled --quiet sddm 2>/dev/null; then
+  c sudo systemctl disable sddm
+fi
+for service in greetd NetworkManager;
+{{- else }}
+for service in sddm NetworkManager;
+{{- end }} do
   if ! systemctl is-enabled --quiet "${service}" 2>/dev/null; then
     log_task "Enabling ${service}"
     c sudo systemctl enable "${service}"
   fi
 done
+{{- end }}
+
+{{- if eq (get . "profile") "carbon" }}
+for service in tailscaled bluetooth; do
+  c sudo systemctl enable --now "$service"
+done
+# Runtime proxy configuration is generated separately by Documents/sb.
+if [[ -s /etc/sing-box/config.json ]]; then
+  c sudo sing-box check -C /etc/sing-box
+  c sudo systemctl enable --now sing-box
+fi
 {{- end }}
 
 # Keep the wall clock accurate; hardware clocks drift and nothing else on this

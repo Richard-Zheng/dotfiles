@@ -41,7 +41,11 @@ readonly desktop_packages=(
   pasystray
   pipewire-pulse
   playerctl
+{{- if eq (get . "profile") "carbon" }}
+  alacritty
+{{- else }}
   ghostty
+{{- end }}
   rofi
   i3blocks acpi lm_sensors sysstat bc alsa-utils
   imagemagick
@@ -51,7 +55,11 @@ readonly desktop_packages=(
   xorg-xset
   xorg-xrdb
   xorg-xinput
+{{- if eq (get . "profile") "carbon" }}
+  greetd greetd-tuigreet xorg-xinit
+{{- else }}
   sddm
+{{- end }}
   kwallet
   # Utilities
   lxappearance
@@ -88,6 +96,10 @@ wanted_packages+=("${desktop_packages[@]}")
 {{- end }}
 {{- if eq .type "laptop" }}
 wanted_packages+=("${laptop_packages[@]}")
+{{- end }}
+
+{{- if eq (get . "profile") "carbon" }}
+wanted_packages+=(tailscale pi openai-codex sing-box sof-firmware mesa vulkan-intel)
 {{- end }}
 
 missing_packages=()

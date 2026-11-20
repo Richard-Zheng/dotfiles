@@ -10,3 +10,13 @@ etc/systemd/system/btrbk.timer.d
 {{- if not .is_linux }}
 etc/keyd
 {{- end }}
+
+{{ if ne (get . "profile") "carbon" -}}
+etc/greetd
+etc/default/grub.d/90-carbon.cfg
+etc/udev/rules.d/90-backlight-permissions.rules
+etc/pacman.d/mirrorlist
+usr/local/bin/greetd-i3
+usr/local/libexec/greetd-i3-session
+.chezmoiscripts/*-carbon-*
+{{ end -}}
