@@ -138,6 +138,7 @@ export EDITOR=nvim
 [[ ! -f $_zdir/aliases.zsh ]] || source $_zdir/aliases.zsh
 [[ ! -f $_zdir/icspa.zsh ]] || source $_zdir/icspa.zsh
 [[ ! -f $_zdir/jyyos.zsh ]] || source $_zdir/jyyos.zsh
+[[ ! -f $_zdir/theos.zsh ]] || source $_zdir/theos.zsh
 
 # History file
 HISTFILE=~/.zsh_history

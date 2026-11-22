@@ -1,3 +1,6 @@
+Host *
+  WarnWeakCrypto no-pq-kex
+
 Host 172.31.233.17
   HostName 172.31.233.17
   Port 12223
