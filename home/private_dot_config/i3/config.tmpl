@@ -50,8 +50,10 @@ exec --no-startup-id /usr/lib/polkit-kde-authentication-agent-1
 # https://wiki.archlinux.org/index.php/XDG_Autostart
 exec --no-startup-id dex --autostart --environment i3
 
+{{- if .desktop.fcitx5 }}
 # Start fcitx5
 exec --no-startup-id fcitx5 -d
+{{- end }}
 
 # Start dunst
 exec --no-startup-id dunst
@@ -101,7 +103,9 @@ floating_modifier $mod
 tiling_drag modifier titlebar
 
 # start a terminal
-bindsym $mod+Return exec {{ if eq (get . "profile") "carbon" }}alacritty{{ else }}ghostty{{ end }}
+{{- if .desktop.terminal }}
+bindsym $mod+Return exec {{ .desktop.terminal }}
+{{- end }}
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -256,9 +260,9 @@ bindsym $mod+Shift+p exec \
     xclip -selection clipboard -t image/png
 bindsym Print exec --no-startup-id flameshot gui
 
-# 显示器布局相关的快捷键见 conf.d/monitors.conf（机器专属）
+# 显示器布局相关的快捷键见 conf.d/monitors.conf（由 display.dual_monitor 控制）
 
-{{ if eq (get . "profile") "carbon" -}}
-# Internal panel: native resolution at 60 Hz after login.
-exec --no-startup-id xrandr --output eDP-1 --mode 2880x1800 --rate 60
-{{ end -}}
+{{- if .display.i3_xrandr_cmd }}
+# Host display mode configured in chezmoi.toml [data.display].
+exec --no-startup-id {{ .display.i3_xrandr_cmd }}
+{{- end }}

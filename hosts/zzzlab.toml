@@ -1,0 +1,51 @@
+# Machine config: zzzlab (Homelab Proxmox VE VM, Ubuntu 26.04, headless minimal)
+#
+# To add a new machine:
+#   cp hosts/zzzlab.toml hosts/<hostname>.toml
+#   # adjust the flags below, then run:
+#   chezmoi init --apply
+
+[data]
+  host = "zzzlab"
+
+[data.desktop]
+  enabled = false                  # Headless VM: no X11/i3 or GUI dotfiles
+  display_manager = "none"         # "greetd" | "sddm" | "none"
+  terminal = ""                    # "ghostty" | "alacritty" | ""
+  fcitx5 = false                   # No input method or /etc/environment IM vars
+  keyd = false                     # No physical keyboard remapping
+
+[data.display]
+  i3_xrandr_cmd = ""
+  sensor_chip = ""
+  dual_monitor = false
+  hdmi_output = ""
+  dp_output = ""
+  resolution = ""
+  hdmi_rate = ""
+  dp_rate = ""
+
+[data.hardware]
+  laptop = false
+  backlight_udev = false
+  bluetooth = false
+  gpu_packages = []
+
+[data.boot]
+  grub_cmdline_video = ""
+  grub_swapfile_hibernation = false
+
+[data.storage]
+  btrbk_proj_snapshots = false     # VM root disk (non-btrfs / no /btrfs/@home)
+
+[data.system]
+  arch_sustech_mirror = false      # Not Arch Linux
+  archlinuxcn = false              # Not Arch Linux
+  ntp_timesyncd = false            # Let Ubuntu/Proxmox manage VM time sync
+
+[data.tools]
+  tailscale = false                # Minimal headless VM
+  sing_box = false                 # Minimal headless VM
+  ai_cli = false                   # Minimal headless VM (skips codex/pi/claude/agents & encrypted tokens)
+  aliyun_dns = false               # Minimal headless VM (skips aliyun-dns & encrypted aliyun.env)
+  uv = true                        # Install uv into ~/.local/bin

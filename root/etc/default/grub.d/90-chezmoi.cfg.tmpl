@@ -1,0 +1,37 @@
+# Managed by rootmoi (chezmoi) from [data.boot].
+# Sourced by grub-mkconfig. Never copy a disk UUID or swap offset between hosts.
+{{- $patterns := list -}}
+{{- if .boot.grub_cmdline_video -}}
+{{-   $videoOut := index (splitList ":" .boot.grub_cmdline_video) 0 -}}
+{{-   $patterns = append $patterns (printf "video=%s:*" $videoOut) -}}
+{{- end -}}
+{{- if .boot.grub_swapfile_hibernation -}}
+{{-   $patterns = append $patterns "resume=*" -}}
+{{-   $patterns = append $patterns "resume_offset=*" -}}
+{{- end }}
+
+chezmoi_filter_args() {
+    for _arg in $1; do
+        case "$_arg" in
+            {{ join "|" $patterns }}) ;;
+            *) printf '%s ' "$_arg" ;;
+        esac
+    done
+}
+{{- if .boot.grub_cmdline_video }}
+GRUB_CMDLINE_LINUX_DEFAULT="$(chezmoi_filter_args "${GRUB_CMDLINE_LINUX_DEFAULT:-}")video={{ .boot.grub_cmdline_video }}"
+{{- else }}
+GRUB_CMDLINE_LINUX_DEFAULT="$(chezmoi_filter_args "${GRUB_CMDLINE_LINUX_DEFAULT:-}")"
+{{- end }}
+GRUB_CMDLINE_LINUX="$(chezmoi_filter_args "${GRUB_CMDLINE_LINUX:-}")"
+{{- if .boot.grub_swapfile_hibernation }}
+if [ -f /swap/swapfile ]; then
+    _resume_uuid=$(findmnt -n -o UUID -T /swap/swapfile)
+    _resume_offset=$(btrfs inspect-internal map-swapfile -r /swap/swapfile)
+    if [ -z "$_resume_uuid" ] || [ -z "$_resume_offset" ]; then
+        echo 'chezmoi grub: cannot determine hibernation resume device/offset' >&2
+        exit 1
+    fi
+    GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX}resume=UUID=$_resume_uuid resume_offset=$_resume_offset"
+fi
+{{- end }}

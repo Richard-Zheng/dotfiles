@@ -1,7 +1,7 @@
 font-family = "Sarasa Mono SC"
 font-size = 11
 
-command = ~/.config/ghostty/autoload-tmux.sh
+command = ~/.local/bin/tmux-terminal
 
 window-decoration = "server"
 

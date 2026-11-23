@@ -2,4 +2,3 @@
 # selected by .chezmoiroot). It exists only so that the user-level instance
 # never mistakes repository metadata for dotfiles.
 *
-!migrate.sh

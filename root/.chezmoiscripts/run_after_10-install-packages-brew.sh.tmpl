@@ -30,14 +30,14 @@ readonly common_packages=(
   tree-sitter
 )
 
-# Only when a graphical desktop is wanted.
+# Only when desktop.enabled = true.
 readonly desktop_packages=(
   ghostty
   font-fira-code-nerd-font
 )
 
 wanted_packages=("${common_packages[@]}")
-{{- if not .is_headless }}
+{{- if .desktop.enabled }}
 wanted_packages+=("${desktop_packages[@]}")
 {{- end }}
 

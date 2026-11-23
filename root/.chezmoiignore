@@ -1,22 +1,61 @@
-{{- /* btrbk is Linux/btrfs only. */ -}}
-{{- if not .is_linux }}
+{{- /*
+Root ignore patterns driven purely by fine-grained flags in chezmoi.toml
+(forwarded into ~/.config/rootmoi/chezmoi.toml by the user chezmoi run).
+*/ -}}
+
+{{- $isLinux := dig "platform" "is_linux" false . -}}
+{{- $isArch := dig "platform" "is_arch" false . -}}
+{{- $desktopEnabled := dig "desktop" "enabled" false . -}}
+{{- $displayManager := dig "desktop" "display_manager" "none" . -}}
+{{- $fcitx5 := dig "desktop" "fcitx5" false . -}}
+{{- $keyd := dig "desktop" "keyd" false . -}}
+{{- $backlightUdev := dig "hardware" "backlight_udev" false . -}}
+{{- $grubVideo := dig "boot" "grub_cmdline_video" "" . -}}
+{{- $grubHibernation := dig "boot" "grub_swapfile_hibernation" false . -}}
+{{- $btrbk := dig "storage" "btrbk_proj_snapshots" false . -}}
+{{- $sustechMirror := dig "system" "arch_sustech_mirror" false . -}}
+{{- $archlinuxcn := dig "system" "archlinuxcn" false . -}}
+{{- $ntpTimesyncd := dig "system" "ntp_timesyncd" false . -}}
+
+{{- if not (and $isLinux $btrbk) }}
 etc/btrbk
 etc/systemd/system/btrbk.timer.d
 .chezmoiscripts/*-btrbk*
 .chezmoiscripts/*-proj-subvolumes*
 {{- end }}
 
-{{- /* keyd is Linux only. */ -}}
-{{- if not .is_linux }}
+{{- if not (and $isLinux $desktopEnabled $keyd) }}
 etc/keyd
 {{- end }}
 
-{{ if ne (get . "profile") "carbon" -}}
+{{- if not (and $isLinux $desktopEnabled $fcitx5) }}
+etc/environment
+{{- end }}
+
+{{- if not (and $isLinux $desktopEnabled (eq $displayManager "greetd")) }}
 etc/greetd
-etc/default/grub.d/90-carbon.cfg
-etc/udev/rules.d/90-backlight-permissions.rules
-etc/pacman.d/mirrorlist
 usr/local/bin/greetd-i3
 usr/local/libexec/greetd-i3-session
-.chezmoiscripts/*-carbon-*
-{{ end -}}
+{{- end }}
+
+{{- if not (and $isLinux $backlightUdev) }}
+etc/udev/rules.d/90-backlight-permissions.rules
+.chezmoiscripts/*-backlight*
+{{- end }}
+
+{{- if not (and $isLinux (or (ne $grubVideo "") $grubHibernation)) }}
+etc/default/grub.d
+.chezmoiscripts/*-grub*
+{{- end }}
+
+{{- if not (and $isArch $sustechMirror) }}
+etc/pacman.d/mirrorlist
+{{- end }}
+
+{{- if not (and $isArch $archlinuxcn) }}
+.chezmoiscripts/*-archlinuxcn*
+{{- end }}
+
+{{- if not (and $isLinux $ntpTimesyncd) }}
+etc/systemd/timesyncd.conf.d
+{{- end }}

@@ -7,11 +7,22 @@ on:
     branches: [main]
 
 jobs:
+  check-hosts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install chezmoi
+        run: |
+          sh -c "$(curl -fsSL https://get.chezmoi.io)" -- -b "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Render and validate all hosts/*.toml profiles
+        run: scripts/check-hosts.sh
+
   test:
     strategy:
       fail-fast: false
       matrix:
-        os: [archlinux, ubuntu-24.04]
+        os: [archlinux, ubuntu-24.04, ubuntu-26.04]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

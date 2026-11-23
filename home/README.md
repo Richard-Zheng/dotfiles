@@ -1,93 +1,111 @@
-# Arch Linux Dotfiles
+# Dotfiles
 
 Managed with [chezmoi](https://chezmoi.io). The repository holds **two** chezmoi
-sources in one git tree:
+sources plus per-machine flag files in one git tree:
 
-```
+```text
+hosts/  -> per-machine flag files (`<hostname>.toml`), loaded into ~/.config/chezmoi/chezmoi.toml
 home/   -> ~        (user dotfiles, applied by the normal `chezmoi` run)
 root/   -> /        (system files, applied as root by `rootmoi`)
 ```
 
-The split is signalled by [`.chezmoiroot`](https://www.chezmoi.io/reference/special-files/chezmoiroot/),
+The `home/` split is signalled by [`.chezmoiroot`](https://www.chezmoi.io/reference/special-files/chezmoiroot/),
 which points the user-level instance at `home/`.
+
+## Per-machine `chezmoi.toml` (`hosts/*.toml`)
+
+Every machine has its own explicit, fine-grained TOML config under `hosts/`:
+
+- `hosts/thinkarch.toml` — ThinkBook 14 G6+ AHP (Arch Linux laptop, greetd + ghostty, btrfs `/btrfs/@home`)
+- `hosts/vccarch.toml` — Daily workstation (Arch Linux desktop, greetd + ghostty, dual 4K `HDMI-1` + `DP-1`)
+- `hosts/carbon.toml` — Carbon laptop (Arch Linux laptop, greetd + ghostty, Intel GPU, `2880x1800` eDP-1, GRUB swapfile hibernation)
+- `hosts/zzzlab.toml` — Homelab Proxmox VE VM (Ubuntu 26.04, headless minimal CLI/shell/tmux/nvim)
+- `hosts/default.toml` — Headless fallback used in CI, containers, and unknown hosts
+
+On `chezmoi init`, `home/.chezmoi.toml.tmpl` matches `hosts/<hostname>.toml`
+automatically (or honors `CHEZMOI_HOST=<name>`, or prompts interactively on an
+unknown host) and writes the full flag set into `~/.config/chezmoi/chezmoi.toml`.
+Every template and `.chezmoiignore` reads only these flags — never hostnames.
+
+### Adding a new machine
+
+```sh
+cp hosts/thinkarch.toml hosts/<new-hostname>.toml
+# edit flags in hosts/<new-hostname>.toml
+chezmoi init --apply
+```
+
+### Updating flags on an existing machine
+
+Edit `hosts/<hostname>.toml` and regenerate `~/.config/chezmoi/chezmoi.toml`:
+
+```sh
+chezmoi init && chezmoi apply
+```
+
+For quick local experiments, you can also edit `~/.config/chezmoi/chezmoi.toml`
+directly and run `chezmoi apply`.
+
+### Migrating a machine from the old `chezmoi.yaml`
+
+Remove `~/.config/chezmoi/chezmoi.yaml` (or run `chezmoi apply`, which deletes
+it via `run_before_10-migrate.sh` and exits with instructions), then run:
+
+```sh
+chezmoi init --source ~/.local/share/chezmoi && chezmoi apply --force
+```
+
+## Flag groups in `chezmoi.toml`
+
+- `[data.desktop]`: `enabled`, `display_manager` (`greetd`/`sddm`/`none`), `terminal` (`ghostty`/`alacritty`/empty), `fcitx5`, `keyd`
+- `[data.display]`: `i3_xrandr_cmd`, `sensor_chip`, `dual_monitor`, `hdmi_output`, `dp_output`, `resolution`, `hdmi_rate`, `dp_rate`
+- `[data.hardware]`: `laptop`, `backlight_udev`, `bluetooth`, `gpu_packages`
+- `[data.boot]`: `grub_cmdline_video`, `grub_swapfile_hibernation`
+- `[data.storage]`: `btrbk_proj_snapshots`
+- `[data.system]`: `arch_sustech_mirror`, `archlinuxcn`, `ntp_timesyncd`
+- `[data.tools]`: `tailscale`, `sing_box`, `ai_cli`, `aliyun_dns`, `uv`
+- `[data.platform]` *(auto-detected)*: `is_linux`, `is_mac`, `is_arch`, `is_debian`, `is_container`, `host_file`, `host_config_sha256`
 
 ## rootmoi
 
 `root/` is applied by a second chezmoi instance that runs as root with
-`destDir: /`. It is invoked through the `rootmoi` wrapper
-(`~/.local/bin/rootmoi`), which is itself managed by the user-level instance.
-After every `chezmoi apply`, `home/.chezmoiscripts/run_after_20-run-rootmoi.sh.tmpl`
-runs `rootmoi apply` automatically. Set `NO_ROOTMOI=1` to skip it.
+`destDir = "/"`. It is invoked through `~/.local/bin/rootmoi` using
+`~/.config/rootmoi/chezmoi.toml` (generated automatically from your user
+`chezmoi.toml` data). After every `chezmoi apply`,
+`home/.chezmoiscripts/run_after_20-run-rootmoi.sh.tmpl` runs `rootmoi apply`
+automatically. Set `NO_ROOTMOI=1` to skip it.
 
-System files are declared under `root/etc/...`. Files owned by packages (like
-`/etc/environment`) are merged with `modify_` templates instead of being
-replaced wholesale.
+System files are declared under `root/etc/...` and `root/usr/...`. Package-owned
+files like `/etc/environment` are merged with `modify_` templates instead of
+being replaced wholesale.
 
-## Machine profiles
+## Snapshots of `~/proj`
 
-The local chezmoi config (`.chezmoi.yaml.tmpl`) prompts once on `chezmoi init`
-and stores two values:
+When `storage.btrbk_proj_snapshots = true` (and `/btrfs/@home` is mounted on a
+btrfs filesystem), `~/proj` is created as a btrfs subvolume and snapshotted by
+[btrbk](https://digint.ch/btrbk/) (`root/etc/btrbk/btrbk.conf.tmpl`) every
+minute on change, preserving the last hour in full plus the first snapshot of
+each of the last 10 hours in `~/.proj-snapshots`.
 
-- `type`: `desktop`, `laptop`, or `headless`
-- `is_headless`: whether graphical desktop configuration should be excluded
+## Verification
 
-It also detects the platform once and exposes it to all templates as data:
-`is_linux`, `is_mac`, `is_arch`, `is_debian`. Installation scripts use
-**capability detection** (does `pacman`/`apt-get`/`brew` exist?) rather than
-branching on the OS, so the same scripts work across distributions.
-
-After changing the config template on an existing machine, regenerate the local
-config:
+Validate all `hosts/*.toml` profiles locally (no root or Docker required):
 
 ```sh
-chezmoi init
+scripts/check-hosts.sh
 ```
 
-## Snapshots of ~/proj
+Full container smoke test:
 
-`~/proj` is a btrfs subvolume whose snapshots are managed by
-[btrbk](https://digint.ch/btrbk/) (`root/etc/btrbk/btrbk.conf`). A per-minute
-timer creates a snapshot only when the subvolume changed, keeping the last hour
-in full plus the first snapshot of each of the last 10 hours. Snapshots are
-stored in `~/.proj-snapshots`, outside the source subvolume.
+```sh
+scripts/test.sh --os archlinux
+scripts/test.sh --os ubuntu-26.04
+```
 
-## Optional AUR packages
+## Notes on host prerequisites
 
-- `selectdefaultapplication-fork-git` — set default applications for MIME types
-  and URL schemes in `~/.config/mimeapps.list`
-
-## carbon machine profile
-
-Keep `type: laptop` and set `profile: carbon` in the local chezmoi config.
-`chezmoi init` offers `generic` and `carbon`; a new host named carbon defaults
-its profile to carbon. Existing configs without a profile keep generic behavior.
-After selecting the profile, run `chezmoi apply`. The rootmoi config forwards it.
-
-The carbon profile manages:
-
-- Alacritty as the i3 terminal, with a shared `term` tmux session.
-- greetd + tuigreet and the Xorg/i3 startup scripts. SDDM is disabled for the
-  next login without stopping an existing graphical session.
-- The internal eDP-1 panel: 1920x1200 at 60 Hz for the Linux console/greeter,
-  2880x1800 at 60 Hz in i3. Firmware and GRUB display modes are separate.
-- Backlight permissions for the video group and membership for the normal user.
-- SUSTech official mirrors; the existing archlinuxcn setup uses SUSTech too.
-- Tailscale, Pi, Codex, sing-box, Intel graphics and audio firmware packages;
-  tailscaled and Bluetooth services. Tailscale account login remains manual.
-- Hibernation boot arguments in `/etc/default/grub.d/90-carbon.cfg`. The device
-  UUID and physical resume offset are read from `/swap/swapfile` whenever
-  grub-mkconfig runs, rather than stored in Git. The hardware script regenerates
-  grub.cfg after validating it; it never installs the bootloader or changes EFI
-  boot entries.
-
-Installation prerequisites stay outside chezmoi: the partitions, Btrfs subvolumes,
-`fstab`, and the existing 16 GiB `/swap/swapfile` in `@swap`. Do not snapshot the
-swap subvolume. Recreating or relocating the swapfile requires regenerating GRUB.
-Disk UUIDs, passwords, EFI boot order and SSH host keys are not synchronized.
-The sing-box JSON stays under `/etc/sing-box`; generate it separately using
-`Documents/sb/devices/linux.js`, validate it, and then restart the service.
-The profile only enables sing-box if that config already exists.
-
-The earlier Ghostty/Cairo workaround is not needed by Alacritty and is not part
-of the carbon profile. Existing encrypted user credentials continue to use the
-repository's age mechanism; the decryption key remains local.
+Disk partitions, Btrfs subvolumes, `fstab`, swapfiles (`/swap/swapfile`), disk
+UUIDs, passwords, EFI boot entries, SSH host keys, the age key
+(`~/.config/chezmoi/key.txt`), Tailscale login, and `/etc/sing-box/config.json`
+remain outside chezmoi. `sing-box.service` is only enabled when
+`/etc/sing-box/config.json` already exists.

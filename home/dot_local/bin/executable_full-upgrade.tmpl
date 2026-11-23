@@ -33,6 +33,11 @@ if command -v chezmoi >/dev/null 2>&1; then
   fi
   unset dotfiles_old_hash dotfiles_new_hash
 
+  # Remove legacy YAML config before regenerating chezmoi.toml.
+  if [[ -f "${HOME}/.config/chezmoi/chezmoi.yaml" ]]; then
+    c rm -f "${HOME}/.config/chezmoi/chezmoi.yaml"
+  fi
+
   c chezmoi init --force
   c chezmoi apply --force
 fi
@@ -71,8 +76,12 @@ fi
 
 # --- Language runtimes -----------------------------------------------------
 if command -v uv >/dev/null 2>&1; then
-  log_task "Updating uv"
-  c uv self update
+  # Only self-update user-local uv installs; pacman/brew-managed uv is upgraded
+  # by its system package manager above.
+  if [[ "$(command -v uv)" == "${HOME}/"* ]]; then
+    log_task "Updating uv"
+    c uv self update
+  fi
 fi
 
 if command -v npm >/dev/null 2>&1; then

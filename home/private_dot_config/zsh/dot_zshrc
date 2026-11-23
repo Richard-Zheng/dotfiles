@@ -131,7 +131,9 @@ zinit light atuinsh/atuin
 
 [[ ! -f $_zdir/tmux.zsh ]] || source $_zdir/tmux.zsh
 
-zinit snippet PZT::modules/pacman/init.zsh
+if (( $+commands[pacman] )); then
+  zinit snippet PZT::modules/pacman/init.zsh
+fi
 
 # Env
 export EDITOR=nvim

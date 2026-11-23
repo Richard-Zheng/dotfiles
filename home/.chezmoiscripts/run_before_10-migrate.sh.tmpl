@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This script runs before anything else on every `chezmoi apply`. It handles
-# migrations that chezmoi itself cannot express.
+# config format migrations and warns when a machine's hosts/*.toml has changed.
 
 # {{ template "scripts-library" }}
 
@@ -10,11 +10,22 @@ true || source ../.chezmoitemplates/scripts-library
 
 migrated=false
 
-# The config file moved from chezmoi.toml to chezmoi.yaml (chezmoi refuses to
-# start when both exist). Remove the old one and ask for a re-init.
-# {{ if and (stat .chezmoi.configFile) (not (hasSuffix ".yaml" .chezmoi.configFile)) }}
+# Clean up legacy YAML rootmoi config if present (rootmoi now uses chezmoi.toml).
+if [[ -f "${HOME}/.config/rootmoi/chezmoi.yaml" ]]; then
+  rm -f "${HOME}/.config/rootmoi/chezmoi.yaml"
+fi
+
+# Config format is ~/.config/chezmoi/chezmoi.toml (chezmoi refuses to start when
+# both chezmoi.yaml and chezmoi.toml exist). Remove old non-.toml config files.
+# {{ if and (stat .chezmoi.configFile) (not (hasSuffix ".toml" .chezmoi.configFile)) }}
 log_red "⚠️ Detected old configuration file at '{{ .chezmoi.configFile }}'. Deleting it..."
 rm -f "{{ .chezmoi.configFile }}"
+migrated=true
+# {{ end }}
+
+# Detect pre-refactor chezmoi.toml that lacks the grouped flag tables.
+# {{ if not (hasKey . "desktop") }}
+log_red "⚠️ Local chezmoi.toml uses the legacy schema and needs regeneration."
 migrated=true
 # {{ end }}
 
@@ -25,3 +36,14 @@ if [[ "${migrated}" == true ]]; then
 👉 chezmoi init --source '{{ .chezmoi.workingTree }}' && chezmoi apply --force
 "
 fi
+
+# Warn (non-fatal) if the checked-in hosts/<host>.toml was updated after the
+# last `chezmoi init`. Kept non-fatal so local experiments in chezmoi.toml work.
+# {{ $hostFile := dig "platform" "host_file" "" . }}
+# {{ $savedSha := dig "platform" "host_config_sha256" "" . }}
+# {{ if and $hostFile $savedSha (stat (joinPath .chezmoi.workingTree $hostFile)) }}
+# {{   $currentSha := include (joinPath .chezmoi.workingTree $hostFile) | trimSuffix "\n" | sha256sum }}
+# {{   if ne $currentSha $savedSha }}
+log_manual_action "'{{ $hostFile }}' has changed since your last 'chezmoi init'. Run 'chezmoi init && chezmoi apply' to sync flags into ~/.config/chezmoi/chezmoi.toml."
+# {{   end }}
+# {{ end }}

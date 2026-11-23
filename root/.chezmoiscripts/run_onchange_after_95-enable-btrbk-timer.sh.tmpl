@@ -8,11 +8,17 @@ true || source ../.chezmoitemplates/scripts-library
 # Re-run this script whenever the btrbk config or the timer override changes.
 # btrbk.conf: {{ include "etc/btrbk/btrbk.conf.tmpl" | sha256sum }}
 # override.conf: {{ include "etc/systemd/system/btrbk.timer.d/override.conf" | sha256sum }}
+# user: {{ .non_root_user }}
 
 {{- if includeTemplate "is-running-with-systemd" . }}
 
 if ! command -v btrbk >/dev/null 2>&1; then
   log_info "btrbk not installed, skipping btrbk timer setup"
+  exit 0
+fi
+
+if [[ ! -d /btrfs/@home ]]; then
+  log_info "/btrfs/@home not mounted, skipping btrbk timer setup"
   exit 0
 fi
 

@@ -10,7 +10,7 @@ if ! type -P pacman >/dev/null 2>&1; then
   exit 0
 fi
 
-# Installed on every machine (headless included).
+# Installed on every Arch machine (headless included).
 readonly common_packages=(
   zsh
   tmux
@@ -24,12 +24,9 @@ readonly common_packages=(
   base-devel
   # Editor
   neovim python-neovim lazygit tree-sitter-cli
-  # btrfs tooling for the ~/proj snapshots.
-  btrfs-progs
-  btrbk
 )
 
-# Only when a graphical desktop is wanted.
+# Only when desktop.enabled = true.
 readonly desktop_packages=(
   # Window manager and desktop
   i3-wm
@@ -41,32 +38,21 @@ readonly desktop_packages=(
   pasystray
   pipewire-pulse
   playerctl
-{{- if eq (get . "profile") "carbon" }}
-  alacritty
-{{- else }}
-  ghostty
-{{- end }}
   rofi
   i3blocks acpi lm_sensors sysstat bc alsa-utils
   imagemagick
   xclip
   flameshot
   terminus-font
+  xorg-xrandr
   xorg-xset
   xorg-xrdb
   xorg-xinput
-{{- if eq (get . "profile") "carbon" }}
-  greetd greetd-tuigreet xorg-xinit
-{{- else }}
-  sddm
-{{- end }}
   kwallet
   polkit-kde-agent
   # Utilities
   lxappearance
   arandr
-  bluez
-  blueman
   kwalletmanager
   workrave
   # Theme and icons
@@ -75,15 +61,11 @@ readonly desktop_packages=(
   breeze-icons
   # Fonts
   noto-fonts-cjk ttf-firacode-nerd ttf-fira-sans ttf-nerd-fonts-symbols
-  # Input method
-  fcitx5-im fcitx5-chinese-addons fcitx5-nord fcitx5-material-color
   # Basic desktop applications
   konsole dolphin okular spectacle mpv nomacs feh
-  # keyd remaps keys on physical workstations
-  keyd
 )
 
-# Laptop-only packages.
+# Only when hardware.laptop = true.
 readonly laptop_packages=(
   brightnessctl
   cpupower
@@ -92,15 +74,53 @@ readonly laptop_packages=(
 )
 
 wanted_packages=("${common_packages[@]}")
-{{- if not .is_headless }}
-wanted_packages+=("${desktop_packages[@]}")
+
+{{- if .storage.btrbk_proj_snapshots }}
+wanted_packages+=(btrfs-progs btrbk)
 {{- end }}
-{{- if eq .type "laptop" }}
+
+{{- if .desktop.enabled }}
+wanted_packages+=("${desktop_packages[@]}")
+{{-   if eq .desktop.terminal "ghostty" }}
+wanted_packages+=(ghostty)
+{{-   else if eq .desktop.terminal "alacritty" }}
+wanted_packages+=(alacritty)
+{{-   end }}
+{{-   if eq .desktop.display_manager "greetd" }}
+wanted_packages+=(greetd greetd-tuigreet xorg-xinit)
+{{-   else if eq .desktop.display_manager "sddm" }}
+wanted_packages+=(sddm)
+{{-   end }}
+{{-   if .desktop.fcitx5 }}
+wanted_packages+=(fcitx5-im fcitx5-chinese-addons fcitx5-nord fcitx5-material-color)
+{{-   end }}
+{{-   if .desktop.keyd }}
+wanted_packages+=(keyd)
+{{-   end }}
+{{- end }}
+
+{{- if .hardware.laptop }}
 wanted_packages+=("${laptop_packages[@]}")
 {{- end }}
 
-{{- if eq (get . "profile") "carbon" }}
-wanted_packages+=(tailscale pi openai-codex sing-box sof-firmware mesa vulkan-intel)
+{{- if .hardware.bluetooth }}
+wanted_packages+=(bluez blueman)
+{{- end }}
+
+{{- if .hardware.gpu_packages }}
+wanted_packages+=({{ range .hardware.gpu_packages }}{{ . | quote }} {{ end }})
+{{- end }}
+
+{{- if .tools.tailscale }}
+wanted_packages+=(tailscale)
+{{- end }}
+
+{{- if .tools.sing_box }}
+wanted_packages+=(sing-box)
+{{- end }}
+
+{{- if .tools.ai_cli }}
+wanted_packages+=(pi openai-codex)
 {{- end }}
 
 missing_packages=()

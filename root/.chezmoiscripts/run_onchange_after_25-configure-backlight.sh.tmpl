@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# {{ template "scripts-library" }}
+
+# The following line is for ShellCheck to correctly identify the above include
+true || source ../.chezmoitemplates/scripts-library
+
+# Re-run whenever the backlight udev rule or target user changes.
+# rule: {{ include "etc/udev/rules.d/90-backlight-permissions.rules" | sha256sum }}
+# user: {{ .non_root_user }}
+
+if ! id -nG '{{ .non_root_user }}' | tr ' ' '\n' | grep -qx 'video'; then
+  log_task "Adding {{ .non_root_user }} to the video group for backlight control"
+  c sudo usermod -aG video '{{ .non_root_user }}'
+fi
+
+{{- if includeTemplate "is-running-with-systemd" . }}
+if command -v udevadm >/dev/null 2>&1; then
+  log_task "Reloading backlight udev rules"
+  c sudo udevadm control --reload-rules
+  c sudo udevadm trigger --action=add --subsystem-match=backlight
+  c sudo udevadm settle
+fi
+{{- end }}

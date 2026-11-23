@@ -1,0 +1,51 @@
+# Machine config: carbon (Arch Linux laptop, Intel graphics, 2880x1800 eDP-1)
+#
+# To add a new machine:
+#   cp hosts/carbon.toml hosts/<hostname>.toml
+#   # adjust the flags below, then run:
+#   chezmoi init --apply
+
+[data]
+  host = "carbon"
+
+[data.desktop]
+  enabled = true                   # Graphical X11/i3 session and GUI dotfiles
+  display_manager = "greetd"       # "greetd" | "sddm" | "none"
+  terminal = "ghostty"             # "ghostty" | "alacritty" | ""
+  fcitx5 = true                    # Fcitx5 dotfiles + /etc/environment IM vars
+  keyd = true                      # System-wide /etc/keyd keyboard remapping
+
+[data.display]
+  i3_xrandr_cmd = "xrandr --output eDP-1 --mode 2880x1800 --rate 60"
+  sensor_chip = ""                 # lm-sensors chip for i3blocks temperature (empty = auto)
+  dual_monitor = false             # Deploy ~/.config/i3/conf.d/monitors.conf + monitor.sh
+  hdmi_output = ""                 # Used when dual_monitor = true
+  dp_output = ""
+  resolution = ""
+  hdmi_rate = ""
+  dp_rate = ""
+
+[data.hardware]
+  laptop = true                    # Laptop power tools, power-profiles-daemon, i3blocks battery/PPD
+  backlight_udev = true            # udev backlight permission rule + add user to video group
+  bluetooth = true                 # bluez/blueman packages + enable bluetooth.service
+  gpu_packages = ["sof-firmware", "mesa", "vulkan-intel"] # Intel graphics & audio firmware
+
+[data.boot]
+  grub_cmdline_video = "eDP-1:1920x1200@60" # Readable console/greeter mode before i3 switches to 2880x1800
+  grub_swapfile_hibernation = true          # Compute resume=UUID & resume_offset from /swap/swapfile
+
+[data.storage]
+  btrbk_proj_snapshots = false     # Set true if /btrfs/@home is mounted and ~/proj snapshots are wanted
+
+[data.system]
+  arch_sustech_mirror = true       # Manage /etc/pacman.d/mirrorlist (SUSTech HTTPS)
+  archlinuxcn = true               # Configure [archlinuxcn] repo + keyring in /etc/pacman.conf
+  ntp_timesyncd = true             # Manage /etc/systemd/timesyncd.conf.d/70-ntp.conf + enable timesyncd
+
+[data.tools]
+  tailscale = true                 # Install tailscale + enable tailscaled
+  sing_box = true                  # Install sing-box + enable service (only if /etc/sing-box/config.json exists)
+  ai_cli = true                    # Install pi & openai-codex (Arch) + deploy ~/.codex, ~/.pi, ~/.claude, ~/.agents
+  aliyun_dns = true                # Deploy ~/.local/bin/aliyun-dns + encrypted aliyun.env
+  uv = true                        # Ensure uv is installed (pacman or ~/.local/bin)

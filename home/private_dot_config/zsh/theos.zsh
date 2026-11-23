@@ -1,1 +1,3 @@
-export THEOS=~/theos
+if [[ -d ~/theos ]]; then
+  export THEOS=~/theos
+fi

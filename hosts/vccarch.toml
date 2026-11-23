@@ -1,0 +1,51 @@
+# Machine config: vccarch (Daily workstation, Arch Linux desktop)
+#
+# To add a new machine:
+#   cp hosts/vccarch.toml hosts/<hostname>.toml
+#   # adjust the flags below, then run:
+#   chezmoi init --apply
+
+[data]
+  host = "vccarch"
+
+[data.desktop]
+  enabled = true                   # Graphical X11/i3 session and GUI dotfiles
+  display_manager = "greetd"       # "greetd" | "sddm" | "none"
+  terminal = "ghostty"             # "ghostty" | "alacritty" | ""
+  fcitx5 = true                    # Fcitx5 dotfiles + /etc/environment IM vars
+  keyd = true                      # System-wide /etc/keyd keyboard remapping
+
+[data.display]
+  i3_xrandr_cmd = ""               # Startup xrandr command in i3 (empty = none)
+  sensor_chip = ""                 # lm-sensors chip for i3blocks temperature (empty = auto)
+  dual_monitor = true              # Deploy ~/.config/i3/conf.d/monitors.conf + monitor.sh
+  hdmi_output = "HDMI-1"           # Left/primary monitor (locked to 4K30 to avoid 4:2:0 chroma subsampling)
+  dp_output = "DP-1"               # Right monitor (4K60)
+  resolution = "3840x2160"
+  hdmi_rate = "30.00"
+  dp_rate = "60.00"
+
+[data.hardware]
+  laptop = false                   # Workstation desktop (no battery / PPD)
+  backlight_udev = false           # External monitors only
+  bluetooth = true                 # bluez/blueman packages + enable bluetooth.service
+  gpu_packages = []                # Extra Arch hardware/firmware packages
+
+[data.boot]
+  grub_cmdline_video = ""          # Optional console/greeter mode
+  grub_swapfile_hibernation = false # Compute resume=UUID & resume_offset from /swap/swapfile
+
+[data.storage]
+  btrbk_proj_snapshots = true      # Manage ~/proj btrfs subvolume + btrbk timer (requires /btrfs/@home)
+
+[data.system]
+  arch_sustech_mirror = true       # Manage /etc/pacman.d/mirrorlist (SUSTech HTTPS)
+  archlinuxcn = true               # Configure [archlinuxcn] repo + keyring in /etc/pacman.conf
+  ntp_timesyncd = true             # Manage /etc/systemd/timesyncd.conf.d/70-ntp.conf + enable timesyncd
+
+[data.tools]
+  tailscale = true                 # Install tailscale + enable tailscaled
+  sing_box = true                  # Install sing-box + enable service (only if /etc/sing-box/config.json exists)
+  ai_cli = true                    # Install pi & openai-codex (Arch) + deploy ~/.codex, ~/.pi, ~/.claude, ~/.agents
+  aliyun_dns = true                # Deploy ~/.local/bin/aliyun-dns + encrypted aliyun.env
+  uv = true                        # Ensure uv is installed (pacman or ~/.local/bin)

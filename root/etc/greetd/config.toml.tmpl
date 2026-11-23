@@ -2,5 +2,5 @@
 vt = 1
 
 [default_session]
-command = "/usr/bin/tuigreet --time --remember --user {{ .non_root_user }} --greeting carbon --sessions /etc/greetd/sessions --xsessions /etc/greetd/sessions --cmd /usr/local/bin/greetd-i3"
+command = "/usr/bin/tuigreet --time --remember --user {{ .non_root_user }} --greeting {{ .host }} --sessions /etc/greetd/sessions --xsessions /etc/greetd/sessions --cmd /usr/local/bin/greetd-i3"
 user = "greeter"

@@ -1,1 +1,1 @@
-Server = http://mirrors.sustech.edu.cn/archlinux/$repo/os/$arch
+Server = https://mirrors.sustech.edu.cn/archlinux/$repo/os/$arch

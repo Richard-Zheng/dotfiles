@@ -1,0 +1,54 @@
+# Machine config: thinkarch (Lenovo ThinkBook 14 G6+ AHP, Arch Linux)
+#
+# To add a new machine:
+#   cp hosts/thinkarch.toml hosts/<hostname>.toml
+#   # adjust the flags below, then run:
+#   chezmoi init --apply
+#
+# Every flag is explicit so reading this file (or ~/.config/chezmoi/chezmoi.toml)
+# shows the complete desired state of this host.
+
+[data]
+  host = "thinkarch"
+
+[data.desktop]
+  enabled = true                   # Graphical X11/i3 session and GUI dotfiles
+  display_manager = "greetd"       # "greetd" | "sddm" | "none"
+  terminal = "ghostty"             # "ghostty" | "alacritty" | ""
+  fcitx5 = true                    # Fcitx5 dotfiles + /etc/environment IM vars
+  keyd = true                      # System-wide /etc/keyd keyboard remapping
+
+[data.display]
+  i3_xrandr_cmd = ""               # Startup xrandr command in i3 (empty = none)
+  sensor_chip = "k10temp-pci-00c3" # lm-sensors chip for i3blocks temperature (empty = auto)
+  dual_monitor = false             # Deploy ~/.config/i3/conf.d/monitors.conf + monitor.sh
+  hdmi_output = ""                 # Used when dual_monitor = true
+  dp_output = ""
+  resolution = ""
+  hdmi_rate = ""
+  dp_rate = ""
+
+[data.hardware]
+  laptop = true                    # Laptop power tools, power-profiles-daemon, i3blocks battery/PPD
+  backlight_udev = true            # udev backlight permission rule + add user to video group
+  bluetooth = true                 # bluez/blueman packages + enable bluetooth.service
+  gpu_packages = ["mesa", "sof-firmware"] # Extra Arch hardware/firmware packages
+
+[data.boot]
+  grub_cmdline_video = ""          # Optional console/greeter mode, e.g. "eDP-1:1920x1200@60"
+  grub_swapfile_hibernation = false # Compute resume=UUID & resume_offset from /swap/swapfile
+
+[data.storage]
+  btrbk_proj_snapshots = true      # Manage ~/proj btrfs subvolume + btrbk timer (requires /btrfs/@home)
+
+[data.system]
+  arch_sustech_mirror = true       # Manage /etc/pacman.d/mirrorlist (SUSTech HTTPS)
+  archlinuxcn = true               # Configure [archlinuxcn] repo + keyring in /etc/pacman.conf
+  ntp_timesyncd = true             # Manage /etc/systemd/timesyncd.conf.d/70-ntp.conf + enable timesyncd
+
+[data.tools]
+  tailscale = true                 # Install tailscale + enable tailscaled
+  sing_box = true                  # Install sing-box + enable service (only if /etc/sing-box/config.json exists)
+  ai_cli = true                    # Install pi & openai-codex (Arch) + deploy ~/.codex, ~/.pi, ~/.claude, ~/.agents
+  aliyun_dns = true                # Deploy ~/.local/bin/aliyun-dns + encrypted aliyun.env
+  uv = true                        # Ensure uv is installed (pacman or ~/.local/bin)

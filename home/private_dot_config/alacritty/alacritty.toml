@@ -1,0 +1,6 @@
+[env]
+TERM = "xterm-256color"
+
+[terminal.shell]
+program = "/bin/bash"
+args = ["-c", "~/.local/bin/tmux-terminal"]

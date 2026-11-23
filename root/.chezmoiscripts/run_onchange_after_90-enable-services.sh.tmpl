@@ -5,58 +5,52 @@
 # The following line is for ShellCheck to correctly identify the above include
 true || source ../.chezmoitemplates/scripts-library
 
+# Re-run when service-related configuration files change.
+{{- if and .desktop.enabled .desktop.keyd }}
+# keyd common: {{ include "etc/keyd/common" | sha256sum }}
+# keyd normal: {{ include "etc/keyd/normal.conf" | sha256sum }}
+{{- end }}
+{{- if and .desktop.enabled (eq .desktop.display_manager "greetd") }}
+# greetd config: {{ include "etc/greetd/config.toml.tmpl" | sha256sum }}
+# greetd host: {{ .host }}
+{{- end }}
+{{- if .system.ntp_timesyncd }}
+# timesyncd: {{ include "etc/systemd/timesyncd.conf.d/70-ntp.conf" | sha256sum }}
+{{- end }}
+
 {{- /* Only manage services where systemd is actually PID 1; in containers
        (devcontainers, WSL without systemd) systemctl exists but fails. */ -}}
 {{- if includeTemplate "is-running-with-systemd" . }}
 
-{{- if not .is_headless }}
-
+{{- if .desktop.enabled }}
 # Display manager and networking for the graphical desktop.
-{{- if eq (get . "profile") "carbon" }}
-# Enable the replacement for the next login without terminating a desktop.
+{{-   if eq .desktop.display_manager "greetd" }}
+# tuigreet references /etc/greetd/sessions.
+c sudo install -d -m755 /etc/greetd/sessions
+# Enable greetd for the next login without terminating an active desktop.
 if systemctl is-enabled --quiet sddm 2>/dev/null; then
+  log_task "Disabling sddm in favor of greetd"
   c sudo systemctl disable sddm
 fi
-for service in greetd NetworkManager;
-{{- else }}
-for service in sddm NetworkManager;
-{{- end }} do
+desktop_services=(greetd NetworkManager)
+{{-   else if eq .desktop.display_manager "sddm" }}
+if systemctl is-enabled --quiet greetd 2>/dev/null; then
+  log_task "Disabling greetd in favor of sddm"
+  c sudo systemctl disable greetd
+fi
+desktop_services=(sddm NetworkManager)
+{{-   else }}
+desktop_services=(NetworkManager)
+{{-   end }}
+
+for service in "${desktop_services[@]}"; do
   if ! systemctl is-enabled --quiet "${service}" 2>/dev/null; then
     log_task "Enabling ${service}"
     c sudo systemctl enable "${service}"
   fi
 done
-{{- end }}
 
-{{- if eq (get . "profile") "carbon" }}
-for service in tailscaled bluetooth; do
-  c sudo systemctl enable --now "$service"
-done
-# Runtime proxy configuration is generated separately by Documents/sb.
-if [[ -s /etc/sing-box/config.json ]]; then
-  c sudo sing-box check -C /etc/sing-box
-  c sudo systemctl enable --now sing-box
-fi
-{{- end }}
-
-# Keep the wall clock accurate; hardware clocks drift and nothing else on this
-# system pulls time. The NTP pool is set in etc/systemd/timesyncd.conf.d.
-if ! systemctl is-enabled --quiet systemd-timesyncd 2>/dev/null; then
-  log_task "Enabling systemd-timesyncd"
-  c sudo systemctl enable --now systemd-timesyncd
-fi
-
-{{- if eq .type "laptop" }}
-
-if ! systemctl is-enabled --quiet power-profiles-daemon 2>/dev/null; then
-  log_task "Enabling power-profiles-daemon"
-  c sudo systemctl enable --now power-profiles-daemon.service
-fi
-{{- end }}
-
-# keyd is used on physical workstations.
-{{- if not .is_headless }}
-
+{{-   if .desktop.keyd }}
 if command -v keyd >/dev/null 2>&1; then
   if ! systemctl is-enabled --quiet keyd 2>/dev/null; then
     log_task "Enabling keyd"
@@ -65,6 +59,49 @@ if command -v keyd >/dev/null 2>&1; then
   # Reload so config changes take effect without a reboot.
   if systemctl is-active --quiet keyd; then
     c sudo keyd reload || c sudo systemctl restart keyd
+  fi
+fi
+{{-   end }}
+{{- end }}
+
+{{- if .hardware.bluetooth }}
+if ! systemctl is-enabled --quiet bluetooth 2>/dev/null; then
+  log_task "Enabling bluetooth"
+  c sudo systemctl enable --now bluetooth
+fi
+{{- end }}
+
+{{- if .hardware.laptop }}
+if ! systemctl is-enabled --quiet power-profiles-daemon 2>/dev/null; then
+  log_task "Enabling power-profiles-daemon"
+  c sudo systemctl enable --now power-profiles-daemon.service
+fi
+{{- end }}
+
+{{- if .system.ntp_timesyncd }}
+# Keep the wall clock accurate; NTP pool is configured in etc/systemd/timesyncd.conf.d.
+if ! systemctl is-enabled --quiet systemd-timesyncd 2>/dev/null; then
+  log_task "Enabling systemd-timesyncd"
+  c sudo systemctl enable --now systemd-timesyncd
+elif systemctl is-active --quiet systemd-timesyncd; then
+  c sudo systemctl restart systemd-timesyncd
+fi
+{{- end }}
+
+{{- if .tools.tailscale }}
+if ! systemctl is-enabled --quiet tailscaled 2>/dev/null; then
+  log_task "Enabling tailscaled"
+  c sudo systemctl enable --now tailscaled
+fi
+{{- end }}
+
+{{- if .tools.sing_box }}
+# Runtime proxy configuration is generated separately (e.g. Documents/sb).
+if [[ -s /etc/sing-box/config.json ]]; then
+  c sudo sing-box check -C /etc/sing-box
+  if ! systemctl is-enabled --quiet sing-box 2>/dev/null; then
+    log_task "Enabling sing-box"
+    c sudo systemctl enable --now sing-box
   fi
 fi
 {{- end }}

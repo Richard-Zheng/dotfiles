@@ -1,6 +1,18 @@
-{{- /* Values are provided by .chezmoi.yaml.tmpl via the data section. */ -}}
+{{- /*
+Ignore patterns driven purely by fine-grained flags in chezmoi.toml.
+Uses `dig` with safe defaults so even an unmigrated host can run
+`run_before_10-migrate.sh` cleanly instead of failing template evaluation.
+*/ -}}
 
-{{- if .is_headless }}
+{{- $desktopEnabled := dig "desktop" "enabled" false . -}}
+{{- $fcitx5 := dig "desktop" "fcitx5" false . -}}
+{{- $dualMonitor := dig "display" "dual_monitor" false . -}}
+{{- $laptop := dig "hardware" "laptop" false . -}}
+{{- $aiCli := dig "tools" "ai_cli" false . -}}
+{{- $aliyunDns := dig "tools" "aliyun_dns" false . -}}
+{{- $uv := dig "tools" "uv" true . -}}
+
+{{- if not $desktopEnabled }}
 # Graphical desktop configuration
 .config/alacritty/
 .config/chromium-flags.conf
@@ -15,11 +27,42 @@
 .config/fcitx5/
 .config/rofi/
 .config/mimeapps.list
+.local/bin/tmux-terminal
 {{- end }}
 
-{{- if ne .type "laptop" }}
-# Laptop-only install scripts
-laptop/
+{{- if not $fcitx5 }}
+.config/fcitx5/
+{{- end }}
+
+{{- if not $dualMonitor }}
+.config/i3/conf.d/monitors.conf
+.config/i3/monitor.sh
+{{- end }}
+
+{{- if not $laptop }}
+.config/i3blocks/battery/
+.config/i3blocks/power-profiles-daemon/
+{{- end }}
+
+{{- if not $aiCli }}
+.agents/
+.claude/
+.codex/
+.pi/
+.config/pi/
+.local/bin/codex
+{{- end }}
+
+{{- if not $aliyunDns }}
+.local/bin/aliyun-dns
+{{- end }}
+
+{{- if and (not $aiCli) (not $aliyunDns) }}
+.config/secrets/aliyun.env
+{{- end }}
+
+{{- if not $uv }}
+.chezmoiscripts/*-install-uv*
 {{- end }}
 
 # Keep i3blocks license and reproducible C sources in Git, not in ~/.config.
@@ -30,17 +73,7 @@ laptop/
 .config/i3blocks/cpu_usage2/Makefile
 .config/i3blocks/cpu_usage2/cpu_usage2.c
 
-{{- if ne .type "laptop" }}
-.config/i3blocks/battery/
-.config/i3blocks/power-profiles-daemon/
-{{- end }}
-
 .DS_Store
 .zcompdump
-lazy_lock.json
-
+lazy-lock.json
 README.md
-
-{{ if ne (get . "profile") "carbon" -}}
-.local/bin/tmux-terminal
-{{ end -}}

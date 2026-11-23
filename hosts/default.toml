@@ -1,0 +1,49 @@
+# Machine config: default (fallback for CI, containers, and unknown hosts)
+#
+# To configure a real machine, copy one of hosts/*.toml to hosts/<hostname>.toml
+# and run `chezmoi init --apply`.
+
+[data]
+  host = "default"
+
+[data.desktop]
+  enabled = false
+  display_manager = "none"
+  terminal = ""
+  fcitx5 = false
+  keyd = false
+
+[data.display]
+  i3_xrandr_cmd = ""
+  sensor_chip = ""
+  dual_monitor = false
+  hdmi_output = ""
+  dp_output = ""
+  resolution = ""
+  hdmi_rate = ""
+  dp_rate = ""
+
+[data.hardware]
+  laptop = false
+  backlight_udev = false
+  bluetooth = false
+  gpu_packages = []
+
+[data.boot]
+  grub_cmdline_video = ""
+  grub_swapfile_hibernation = false
+
+[data.storage]
+  btrbk_proj_snapshots = false
+
+[data.system]
+  arch_sustech_mirror = false
+  archlinuxcn = false
+  ntp_timesyncd = false
+
+[data.tools]
+  tailscale = false
+  sing_box = false
+  ai_cli = false
+  aliyun_dns = false
+  uv = true

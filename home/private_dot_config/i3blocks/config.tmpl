@@ -1,10 +1,3 @@
-{{- /* Preserve the old non-server behavior until a machine runs `chezmoi init`. */ -}}
-{{- $isLaptop := true -}}
-{{- if hasKey . "type" -}}
-{{-   $isLaptop = eq .type "laptop" -}}
-{{- else if and (hasKey . "is_server") .is_server -}}
-{{-   $isLaptop = false -}}
-{{- end -}}
 # i3blocks config file
 #
 # Please see man i3blocks for a complete reference!
@@ -107,9 +100,12 @@ markup=pango
 interval=10
 T_WARN=70
 T_CRIT=90
-SENSOR_CHIP={{ if eq .chezmoi.hostname "tcarch" }}"coretemp-isa-0000"{{ else }}"acpitz_0-acpi-0"{{ end }}
+{{- if .display.sensor_chip }}
+SENSOR_CHIP={{ .display.sensor_chip | quote }}
+{{- end }}
 
-{{ if $isLaptop }}
+{{- if .hardware.laptop }}
+
 [power-profiles-daemon]
 label=<span color="#EE37B8">PPD</span>
 markup=pango
@@ -123,7 +119,7 @@ label=<span color="#EE37B8">BAT</span>
 markup=pango
 #label=⚡
 interval=30
-{{ end }}
+{{- end }}
 
 # Date Time
 #

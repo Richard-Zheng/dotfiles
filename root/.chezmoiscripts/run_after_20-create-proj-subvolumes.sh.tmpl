@@ -5,9 +5,9 @@
 # The following line is for ShellCheck to correctly identify the above include
 true || source ../.chezmoitemplates/scripts-library
 
-# The source subvolume and its snapshot directory are the two btrfs subvolumes
-# btrbk operates on. Create them idempotently so a fresh machine is ready
-# without any manual steps.
+# The source subvolume and its snapshot directory are the two btrfs paths
+# btrbk operates on. Guard against non-btrfs filesystems or missing /btrfs/@home
+# even if btrbk_proj_snapshots was accidentally enabled on a host.
 
 readonly home_dir="{{ .non_root_home }}"
 readonly proj_subvolume="${home_dir}/proj"
@@ -15,6 +15,16 @@ readonly snapshots_dir="${home_dir}/.proj-snapshots"
 
 if ! type -P btrfs >/dev/null 2>&1; then
   log_info "btrfs not found, skipping ~/proj subvolume setup"
+  exit 0
+fi
+
+if [[ ! -d /btrfs/@home ]]; then
+  log_info "/btrfs/@home not mounted, skipping ~/proj btrfs subvolume setup"
+  exit 0
+fi
+
+if [[ "$(findmnt -n -o FSTYPE -T "${home_dir}" 2>/dev/null || true)" != "btrfs" ]]; then
+  log_info "${home_dir} is not on btrfs, skipping ~/proj subvolume setup"
   exit 0
 fi
 

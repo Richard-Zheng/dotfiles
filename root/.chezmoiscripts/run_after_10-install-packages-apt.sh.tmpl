@@ -10,9 +10,7 @@ if ! type -P apt-get >/dev/null 2>&1; then
   exit 0
 fi
 
-# Installed on every machine (headless included).
-# Note: package names differ from Arch; this is why each package manager has
-# its own script instead of one shared list.
+# Minimal CLI + editor base installed on every Debian/Ubuntu machine.
 readonly common_packages=(
   zsh
   tmux
@@ -26,12 +24,9 @@ readonly common_packages=(
   build-essential
   # Editor
   neovim python3-pynvim
-  # btrfs tooling for the ~/proj snapshots.
-  btrfs-progs
-  btrbk
 )
 
-# Only when a graphical desktop is wanted.
+# Only when desktop.enabled = true.
 readonly desktop_packages=(
   # Window manager and desktop
   i3-wm
@@ -51,24 +46,19 @@ readonly desktop_packages=(
   fonts-terminus
   x11-xserver-utils
   xinput
-  sddm
   # Utilities
   lxappearance
   arandr
-  bluez
-  blueman
   workrave
   # Theme and icons
   breeze breeze-gtk-theme breeze-icon-theme
   # Fonts
   fonts-noto-cjk fonts-firacode fonts-powerline
-  # Input method
-  fcitx5 fcitx5-chinese-addons
   # Basic desktop applications
   konsole dolphin okular mpv nomacs feh
 )
 
-# Laptop-only packages.
+# Only when hardware.laptop = true.
 readonly laptop_packages=(
   brightnessctl
   powertop
@@ -76,11 +66,29 @@ readonly laptop_packages=(
 )
 
 wanted_packages=("${common_packages[@]}")
-{{- if not .is_headless }}
-wanted_packages+=("${desktop_packages[@]}")
+
+{{- if .storage.btrbk_proj_snapshots }}
+wanted_packages+=(btrfs-progs btrbk)
 {{- end }}
-{{- if eq .type "laptop" }}
+
+{{- if .desktop.enabled }}
+wanted_packages+=("${desktop_packages[@]}")
+{{-   if eq .desktop.display_manager "sddm" }}
+wanted_packages+=(sddm)
+{{-   else if eq .desktop.display_manager "greetd" }}
+wanted_packages+=(greetd xinit)
+{{-   end }}
+{{-   if .desktop.fcitx5 }}
+wanted_packages+=(fcitx5 fcitx5-chinese-addons)
+{{-   end }}
+{{- end }}
+
+{{- if .hardware.laptop }}
 wanted_packages+=("${laptop_packages[@]}")
+{{- end }}
+
+{{- if .hardware.bluetooth }}
+wanted_packages+=(bluez blueman)
 {{- end }}
 
 missing_packages=()
