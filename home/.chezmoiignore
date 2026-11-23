@@ -23,6 +23,7 @@ Uses `dig` with safe defaults so even an unmigrated host can run
 .config/i3/
 .config/i3blocks/
 .config/i3status/
+.config/kwalletrc
 .config/Code/
 .config/fcitx5/
 .config/rofi/

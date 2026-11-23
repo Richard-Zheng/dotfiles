@@ -1,0 +1,52 @@
+{{- /* chezmoi:modify-template */ -}}
+
+{{- /*
+Enable automatic GNOME Keyring unlock on greetd login by merging
+pam_gnome_keyring.so into /etc/pam.d/greetd (owned by the greetd package)
+without overwriting upstream PAM rules.
+*/ -}}
+
+{{- $lines := list -}}
+{{- if .chezmoi.stdin -}}
+{{-   $lines = splitList "\n" (.chezmoi.stdin | trimSuffix "\n") -}}
+{{- end -}}
+
+{{- $hasAuth := false -}}
+{{- $hasSession := false -}}
+{{- range $line := $lines -}}
+{{-   $trimmed := trim $line -}}
+{{-   if and (not (hasPrefix "#" $trimmed)) (contains "pam_gnome_keyring.so" $trimmed) -}}
+{{-     if or (hasPrefix "auth" $trimmed) (hasPrefix "-auth" $trimmed) -}}
+{{-       $hasAuth = true -}}
+{{-     end -}}
+{{-     if or (hasPrefix "session" $trimmed) (hasPrefix "-session" $trimmed) -}}
+{{-       $hasSession = true -}}
+{{-     end -}}
+{{-   end -}}
+{{- end -}}
+
+{{- $out := list -}}
+{{- $insertedAuth := false -}}
+{{- $insertedSession := false -}}
+{{- range $line := $lines -}}
+{{-   $out = append $out $line -}}
+{{-   $trimmed := trim $line -}}
+{{-   if and (not $hasAuth) (not $insertedAuth) (hasPrefix "auth" $trimmed) (contains "system-local-login" $trimmed) -}}
+{{-     $out = append $out "-auth      optional     pam_gnome_keyring.so" -}}
+{{-     $insertedAuth = true -}}
+{{-   end -}}
+{{-   if and (not $hasSession) (not $insertedSession) (hasPrefix "session" $trimmed) (contains "system-local-login" $trimmed) -}}
+{{-     $out = append $out "-session   optional     pam_gnome_keyring.so auto_start" -}}
+{{-     $insertedSession = true -}}
+{{-   end -}}
+{{- end -}}
+
+{{- if and (not $hasAuth) (not $insertedAuth) -}}
+{{-   $out = append $out "-auth      optional     pam_gnome_keyring.so" -}}
+{{- end -}}
+{{- if and (not $hasSession) (not $insertedSession) -}}
+{{-   $out = append $out "-session   optional     pam_gnome_keyring.so auto_start" -}}
+{{- end -}}
+
+{{- $out | join "\n" -}}
+{{- "\n" -}}

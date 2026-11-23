@@ -146,7 +146,7 @@ for host_file in "${repo_root}"/hosts/*.toml; do
         echo "FAIL: headless host ${host} unexpectedly manages GUI/AI home files" >&2
         exit 1
       fi
-      if grep -qE '^(etc/keyd|etc/environment|etc/btrbk|etc/greetd|etc/default/grub\.d|etc/pacman\.d/mirrorlist|etc/systemd/timesyncd\.conf\.d)' "${root_managed}"; then
+      if grep -qE '^(etc/keyd|etc/environment|etc/btrbk|etc/greetd|etc/pam\.d/greetd|etc/default/grub\.d|etc/pacman\.d/mirrorlist|etc/systemd/timesyncd\.conf\.d)' "${root_managed}"; then
         echo "FAIL: headless host ${host} unexpectedly manages desktop/arch/btrbk root files" >&2
         exit 1
       fi

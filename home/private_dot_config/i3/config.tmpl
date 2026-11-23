@@ -38,8 +38,8 @@ for_window [class="flameshot"] border none
 # is used in the bar {} block below.
 font pango:Terminus 8
 
-# Start KWallet
-exec --no-startup-id /usr/lib/pam_kwallet_init
+# Initialize GNOME Keyring (completes PAM auto-unlock or starts Secret Service)
+exec --no-startup-id /usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets
 
 # Start the polkit authentication agent. Without one, udisks2/GParted etc. fail
 # with "Cannot request authentication for this action. The PolicyKit

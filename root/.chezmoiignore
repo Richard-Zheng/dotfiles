@@ -34,6 +34,7 @@ etc/environment
 
 {{- if not (and $isLinux $desktopEnabled (eq $displayManager "greetd")) }}
 etc/greetd
+etc/pam.d/greetd
 usr/local/bin/greetd-i3
 usr/local/libexec/greetd-i3-session
 {{- end }}

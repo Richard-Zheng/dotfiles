@@ -24,7 +24,7 @@ existing file untouched.
 
 {{- range $line := splitList "\n" (.chezmoi.stdin | trimSuffix "\n") -}}
 {{-   $trimmed := trim $line -}}
-{{-   if and $trimmed (not (hasPrefix $trimmed "#")) -}}
+{{-   if and $trimmed (not (hasPrefix "#" $trimmed)) -}}
 {{-     $key := trim (index (splitList "=" $trimmed) 0) -}}
 {{-     $present = set $present $key true -}}
 {{-   end -}}
