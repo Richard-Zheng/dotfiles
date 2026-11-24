@@ -151,10 +151,6 @@ for host_file in "${repo_root}"/hosts/*.toml; do
         exit 1
       fi
       ;;
-    carbon)
-      grep -qx 'etc/default/grub.d/90-chezmoi.cfg' "${root_managed}" || { echo "FAIL: carbon missing grub drop-in" >&2; exit 1; }
-      grep -qx 'etc/greetd/config.toml' "${root_managed}" || { echo "FAIL: carbon missing greetd config" >&2; exit 1; }
-      ;;
     thinkarch)
       grep -qx 'etc/greetd/config.toml' "${root_managed}" || { echo "FAIL: thinkarch missing greetd config" >&2; exit 1; }
       grep -qx 'etc/btrbk/btrbk.conf' "${root_managed}" || { echo "FAIL: thinkarch missing btrbk config" >&2; exit 1; }

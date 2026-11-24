@@ -10,12 +10,6 @@ true || source ../.chezmoitemplates/scripts-library
 # video: {{ .boot.grub_cmdline_video }}
 # swapfile_hibernation: {{ .boot.grub_swapfile_hibernation }}
 
-# Clean up the pre-refactor host-named drop-in if present.
-if [[ -f /etc/default/grub.d/90-carbon.cfg ]]; then
-  log_task "Removing legacy /etc/default/grub.d/90-carbon.cfg"
-  c sudo rm -f /etc/default/grub.d/90-carbon.cfg
-fi
-
 # Generate first, validate, compare, then replace so repeated runs are safe.
 if [[ -f /boot/grub/grub.cfg ]] && command -v grub-mkconfig >/dev/null 2>&1; then
   candidate=$(mktemp /boot/grub/.chezmoi-grub.XXXXXX)

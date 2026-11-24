@@ -18,7 +18,6 @@ Every machine has its own explicit, fine-grained TOML config under `hosts/`:
 
 - `hosts/thinkarch.toml` — ThinkBook 14 G6+ AHP (Arch Linux laptop, greetd + ghostty, btrfs `/btrfs/@home`)
 - `hosts/vccarch.toml` — Daily workstation (Arch Linux desktop, greetd + ghostty, dual 4K `HDMI-1` + `DP-1`)
-- `hosts/carbon.toml` — Carbon laptop (Arch Linux laptop, greetd + ghostty, Intel GPU, `2880x1800` eDP-1, GRUB swapfile hibernation)
 - `hosts/zzzlab.toml` — Homelab Proxmox VE VM (Ubuntu 26.04, headless minimal CLI/shell/tmux/nvim)
 - `hosts/default.toml` — Headless fallback used in CI, containers, and unknown hosts
 
