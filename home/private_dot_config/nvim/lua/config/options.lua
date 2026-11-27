@@ -5,3 +5,5 @@ vim.opt.cursorline = true
 vim.opt.cursorlineopt = "number"
 
 vim.g.snacks_animate = false
+
+vim.opt.spelllang = { "en", "cjk" }
